@@ -212,6 +212,11 @@ function renderChat(notice) {
     const wrap = el("div", "msg " + (m.role === "user" ? "user" : "ai"));
     wrap.append(el("div", "bubble", m.content));
     if (m.role === "assistant") {
+      if (m.provider) {
+        const pv = el("div", "", "Provider: " + m.provider);
+        pv.style.cssText = "font-size:12px;opacity:.7;margin:4px 6px";
+        wrap.append(pv);
+      }
       const acts = el("div", "msg-actions");
       const cp = el("button", "", "📋 Copy");
       cp.onclick = () => {
