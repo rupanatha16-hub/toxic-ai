@@ -2,12 +2,108 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#10111B">
+  <meta name="description" content="One App. Multiple AI Brains. Everything AI in One Place.">
   <title>TOXIC AI</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.png" type="image/png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body style="margin:0;background:#10111B;color:#F7F7FC;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;">
-  <h1 style="color:#7055E8;">⚡ TOXIC AI</h1>
-  <p>YOUR AI. YOUR WORLD.</p>
+<body>
+
+<div id="splash">
+  <img src="icon.png" alt="TOXIC AI logo">
+  <div class="hero"><h1>TOXIC AI</h1><p>YOUR AI. YOUR WORLD.</p></div>
+</div>
+
+<div id="app">
+
+  <section id="screen-home" class="screen active">
+    <div class="topbar">
+      <h2>TOXIC AI</h2>
+      <button class="icon-btn" id="themeBtn" aria-label="Theme badlo">🌓</button>
+    </div>
+    <div class="body">
+      <div class="hero">
+        <img src="icon.png" alt="TOXIC AI">
+        <h1>Namaste! 👋</h1>
+        <p>Aaj main aapki kya madad karun?</p>
+      </div>
+      <button class="btn btn-primary btn-block" id="newChatBtn">✨ New Chat</button>
+      <div class="section-title">AI Mode</div>
+      <select class="select" id="modeSelect" aria-label="AI Mode"></select>
+      <div class="section-title">Quick Tools</div>
+      <div class="grid" id="quickTools"></div>
+      <div class="section-title">Recent conversations</div>
+      <div id="recentList"></div>
+    </div>
+  </section>
+
+  <section id="screen-chats" class="screen">
+    <div class="topbar"><h2>Chats</h2></div>
+    <div class="body">
+      <input class="input" id="chatSearch" type="search" placeholder="Chats mein search karo" style="margin-bottom:12px">
+      <div id="chatList"></div>
+    </div>
+  </section>
+
+  <section id="screen-tools" class="screen">
+    <div class="topbar"><h2>AI Tools</h2></div>
+    <div class="body">
+      <div class="grid" id="toolsGrid"></div>
+    </div>
+  </section>
+
+  <section id="screen-settings" class="screen">
+    <div class="topbar"><h2>Settings</h2></div>
+    <div class="body">
+      <div class="card">
+        <div class="row">
+          <div><b>Light theme</b><div class="sub" style="color:var(--muted);font-size:13px">Dark aur Light mode badlo</div></div>
+          <div class="toggle" id="themeToggle" role="switch" aria-checked="false" tabindex="0"></div>
+        </div>
+      </div>
+      <div class="card">
+        <b>Custom Instructions</b>
+        <p style="color:var(--muted);font-size:13px;margin:6px 0 10px">AI ko batao ki aap kaise jawab chahte ho. Ye har chat mein use hoga.</p>
+        <textarea class="input" id="customInstr" rows="4" placeholder="Jaise: Hamesha simple Hinglish mein jawab do"></textarea>
+        <button class="btn btn-block" id="saveInstr" style="margin-top:10px">Save karo</button>
+      </div>
+      <div class="card">
+        <b>Privacy</b>
+        <p style="color:var(--muted);font-size:13px;margin:6px 0 10px">Aapki chats sirf aapke phone mein save hoti hain. Jab aap AI se sawal poochte ho, tabhi aapka message AI provider ko jata hai.</p>
+        <button class="btn btn-block" id="clearAll">Saari chats delete karo</button>
+      </div>
+      <div class="card">
+        <b>TOXIC AI</b>
+        <p style="color:var(--muted);font-size:13px;margin:6px 0 0">YOUR AI. YOUR WORLD.<br>One App. Multiple AI Brains. Everything AI in One Place.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-chat" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" id="backBtn" aria-label="Wapas">←</button>
+      <h2 id="chatTitle">New Chat</h2>
+    </div>
+    <div class="chat" id="chatBox"></div>
+    <div class="composer">
+      <textarea id="msgInput" rows="1" placeholder="Apna sawal likho..."></textarea>
+      <button class="send" id="sendBtn" aria-label="Bhejo">➤</button>
+    </div>
+  </section>
+
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" data-go="home"><span class="ico">🏠</span>Home</button>
+    <button class="nav-btn" data-go="chats"><span class="ico">💬</span>Chats</button>
+    <button class="nav-btn" data-go="tools"><span class="ico">🧰</span>Tools</button>
+    <button class="nav-btn" data-go="settings"><span class="ico">⚙️</span>Settings</button>
+  </nav>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="app.js" defer></script>
 </body>
 </html>
