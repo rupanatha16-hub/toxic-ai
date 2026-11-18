@@ -218,23 +218,23 @@ function renderChat(notice) {
         wrap.append(pv);
       }
       const acts = el("div", "msg-actions");
-      const cp = el("button", "", "📋 Copy");
+      const cp = iconBtn("copy", "Copy");
       cp.onclick = () => {
         navigator.clipboard.writeText(m.content).then(() => toast("Copy ho gaya"), () => toast("Copy nahi ho paya"));
       };
       acts.append(cp);
       if (canSpeak) {
-        const sp = el("button", "", "🔊 Sunao");
+        const sp = iconBtn("speak", "Sunao");
         sp.onclick = () => speakText(m.content, sp);
         acts.append(sp);
       }
       if (navigator.share) {
-        const sh = el("button", "", "📤 Share");
+        const sh = iconBtn("share", "Share");
         sh.onclick = () => { navigator.share({ text: m.content }).catch(() => {}); };
         acts.append(sh);
       }
       if (i === lastIdx) {
-        const rg = el("button", "", "🔄 Regenerate");
+        const rg = iconBtn("redo", "Regenerate");
         rg.onclick = regenerate;
         acts.append(rg);
       }
@@ -340,6 +340,29 @@ async function callAI() {
   }
 }
 
+/* ---------- Simple line icons (SVG) ---------- */
+const ICONS = {
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+  share: '<path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
+  speak: '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/>',
+  stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  redo: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+  mic: '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/>'
+};
+function setIcon(btn, name, size) {
+  const n = size || 20;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" width="' + n + '" height="' + n + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[name] + '</svg>';
+}
+function iconBtn(name, label) {
+  const b = el("button", "");
+  b.type = "button";
+  b.setAttribute("aria-label", label);
+  b.title = label;
+  b.style.cssText = "background:transparent;border:none;box-shadow:none;padding:8px 10px;color:inherit;opacity:.75;display:inline-flex;align-items:center;justify-content:center;cursor:pointer";
+  setIcon(b, name);
+  return b;
+}
+
 /* ---------- Voice (browser ki apni suvidha) ---------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
@@ -350,7 +373,7 @@ function cleanForSpeech(t) {
 }
 function stopSpeaking() {
   if (canSpeak) speechSynthesis.cancel();
-  if (speakingEl) { speakingEl.textContent = "🔊 Sunao"; speakingEl = null; }
+  if (speakingEl) { setIcon(speakingEl, "speak"); speakingEl = null; }
 }
 function speakText(text, btn) {
   if (!canSpeak) return;
@@ -361,18 +384,19 @@ function speakText(text, btn) {
   u.lang = hasDev ? "hi-IN" : "en-IN";
   const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.toLowerCase().startsWith(u.lang.slice(0, 2).toLowerCase()));
   if (v) u.voice = v;
-  u.onend = u.onerror = () => { if (speakingEl === btn) { btn.textContent = "🔊 Sunao"; speakingEl = null; } };
+  u.onend = u.onerror = () => { if (speakingEl === btn) { setIcon(btn, "speak"); speakingEl = null; } };
   speakingEl = btn;
-  btn.textContent = "⏹ Roko";
+  setIcon(btn, "stop");
   speechSynthesis.speak(u);
 }
 function setupMic() {
   if (!SR) return;
   const send = $("#sendBtn");
-  const mic = el("button", send.className, "🎤");
+  const mic = el("button", "");
+  setIcon(mic, "mic", 22);
+  mic.style.cssText = "width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:inherit;opacity:.8;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-right:4px;flex:none";
   mic.type = "button";
   mic.setAttribute("aria-label", "Bol kar likho");
-  mic.style.marginRight = "6px";
   send.parentNode.insertBefore(mic, send);
   const input = $("#msgInput");
   let base = "";
@@ -383,7 +407,7 @@ function setupMic() {
     rec.interimResults = true;
     rec.continuous = false;
     base = input.value ? input.value.trim() + " " : "";
-    rec.onstart = () => { listening = true; mic.textContent = "⏹"; toast("Boliye, main sun raha hoon"); };
+    rec.onstart = () => { listening = true; setIcon(mic, "stop", 22); mic.style.opacity = "1"; toast("Boliye, main sun raha hoon"); };
     rec.onresult = (e) => {
       let t = "";
       for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
@@ -394,7 +418,7 @@ function setupMic() {
       const m = { "not-allowed": "Mic ki permission nahi mili", "service-not-allowed": "Mic ki permission nahi mili", "no-speech": "Kuch sunai nahi diya", "network": "Internet check karo" };
       toast(m[e.error] || "Mic mein dikkat: " + e.error);
     };
-    rec.onend = () => { listening = false; mic.textContent = "🎤"; };
+    rec.onend = () => { listening = false; setIcon(mic, "mic", 22); mic.style.opacity = ".8"; };
     try { rec.start(); } catch (err) { toast("Mic shuru nahi ho paya"); }
   };
 }
