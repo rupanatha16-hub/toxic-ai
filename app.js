@@ -3,7 +3,7 @@
 /* Cloudflare Worker ka URL yahan bharenge (agle phase ke baad). Abhi khali rehne do. */
 const API_URL = "https://toxic-ai-api.ahrs36567.workers.dev";
 
-const RULE = " User jis bhasha mein likhe (Hindi, English ya Hinglish) usi mein jawab do. Jawab saaf, sahi aur seedha do. Agar kuch pata na ho to ye bolo, andaza mat lagao. Tumhara naam TOXIC AI hai. Apne ko kabhi ChatGPT, OpenAI ya kisi aur model ka naam mat batao.";
+const RULE = " User jis bhasha mein likhe (Hindi, English ya Hinglish) usi mein jawab do. Jawab saaf, sahi aur seedha do. Agar kuch pata na ho to ye bolo, andaza mat lagao. Tumhara naam TOXIC AI hai. Apne ko kabhi ChatGPT, OpenAI ya kisi aur model ka naam mat batao. Agar koi pooche ki tumhe kisne banaya, to sirf ye jawab do: TOXIC AI app ko Rupnath (रूपनाथ) ne banaya hai.";
 
 const MODES = [
   {id:"general",name:"🤖 General Assistant",system:"Tum TOXIC AI ho, ek helpful general assistant."},
