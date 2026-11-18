@@ -3,7 +3,7 @@
 /* Cloudflare Worker ka URL yahan bharenge (agle phase ke baad). Abhi khali rehne do. */
 const API_URL = "https://toxic-ai-api.ahrs36567.workers.dev";
 
-const RULE = " User jis bhasha mein likhe (Hindi, English ya Hinglish) usi mein jawab do. Jawab saaf, sahi aur seedha do. Agar kuch pata na ho to ye bolo, andaza mat lagao.";
+const RULE = " User jis bhasha mein likhe (Hindi, English ya Hinglish) usi mein jawab do. Jawab saaf, sahi aur seedha do. Agar kuch pata na ho to ye bolo, andaza mat lagao. Tumhara naam TOXIC AI hai. Apne ko kabhi ChatGPT, OpenAI ya kisi aur model ka naam mat batao.";
 
 const MODES = [
   {id:"general",name:"🤖 General Assistant",system:"Tum TOXIC AI ho, ek helpful general assistant."},
@@ -223,6 +223,11 @@ function renderChat(notice) {
         navigator.clipboard.writeText(m.content).then(() => toast("Copy ho gaya"), () => toast("Copy nahi ho paya"));
       };
       acts.append(cp);
+      if (canSpeak) {
+        const sp = el("button", "", "🔊 Sunao");
+        sp.onclick = () => speakText(m.content, sp);
+        acts.append(sp);
+      }
       if (navigator.share) {
         const sh = el("button", "", "📤 Share");
         sh.onclick = () => { navigator.share({ text: m.content }).catch(() => {}); };
@@ -335,6 +340,65 @@ async function callAI() {
   }
 }
 
+/* ---------- Voice (browser ki apni suvidha) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+let rec = null, listening = false, speakingEl = null;
+
+function cleanForSpeech(t) {
+  return String(t).replace(/[\\\[\]()*_`#>]/g, " ").replace(/\s+/g, " ").trim();
+}
+function stopSpeaking() {
+  if (canSpeak) speechSynthesis.cancel();
+  if (speakingEl) { speakingEl.textContent = "🔊 Sunao"; speakingEl = null; }
+}
+function speakText(text, btn) {
+  if (!canSpeak) return;
+  if (speakingEl === btn) { stopSpeaking(); return; }
+  stopSpeaking();
+  const u = new SpeechSynthesisUtterance(cleanForSpeech(text).slice(0, 3000));
+  const hasDev = /[\u0900-\u097F]/.test(text);
+  u.lang = hasDev ? "hi-IN" : "en-IN";
+  const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.toLowerCase().startsWith(u.lang.slice(0, 2).toLowerCase()));
+  if (v) u.voice = v;
+  u.onend = u.onerror = () => { if (speakingEl === btn) { btn.textContent = "🔊 Sunao"; speakingEl = null; } };
+  speakingEl = btn;
+  btn.textContent = "⏹ Roko";
+  speechSynthesis.speak(u);
+}
+function setupMic() {
+  if (!SR) return;
+  const send = $("#sendBtn");
+  const mic = el("button", send.className, "🎤");
+  mic.type = "button";
+  mic.setAttribute("aria-label", "Bol kar likho");
+  mic.style.marginRight = "6px";
+  send.parentNode.insertBefore(mic, send);
+  const input = $("#msgInput");
+  let base = "";
+  mic.onclick = () => {
+    if (listening && rec) { rec.stop(); return; }
+    rec = new SR();
+    rec.lang = "hi-IN";
+    rec.interimResults = true;
+    rec.continuous = false;
+    base = input.value ? input.value.trim() + " " : "";
+    rec.onstart = () => { listening = true; mic.textContent = "⏹"; toast("Boliye, main sun raha hoon"); };
+    rec.onresult = (e) => {
+      let t = "";
+      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      input.value = (base + t).slice(0, 4000);
+      autosize();
+    };
+    rec.onerror = (e) => {
+      const m = { "not-allowed": "Mic ki permission nahi mili", "service-not-allowed": "Mic ki permission nahi mili", "no-speech": "Kuch sunai nahi diya", "network": "Internet check karo" };
+      toast(m[e.error] || "Mic mein dikkat: " + e.error);
+    };
+    rec.onend = () => { listening = false; mic.textContent = "🎤"; };
+    try { rec.start(); } catch (err) { toast("Mic shuru nahi ho paya"); }
+  };
+}
+
 /* ---------- Init ---------- */
 async function init() {
   applyTheme(store.get("toxic.theme", "dark"));
@@ -350,11 +414,12 @@ async function init() {
 
   document.querySelectorAll(".nav-btn").forEach((b) => { b.onclick = () => show(b.dataset.go); });
   $("#newChatBtn").onclick = () => newChat(sel.value, null);
-  $("#backBtn").onclick = () => show(lastMain);
+  $("#backBtn").onclick = () => { stopSpeaking(); show(lastMain); };
   $("#themeBtn").onclick = toggleTheme;
   $("#themeToggle").onclick = toggleTheme;
   $("#themeToggle").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } };
   $("#sendBtn").onclick = send;
+  setupMic();
   $("#msgInput").oninput = autosize;
   $("#chatSearch").oninput = renderChats;
 
