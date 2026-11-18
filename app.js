@@ -3,7 +3,7 @@
 /* Cloudflare Worker ka URL yahan bharenge (agle phase ke baad). Abhi khali rehne do. */
 const API_URL = "https://toxic-ai-api.ahrs36567.workers.dev";
 
-const RULE = " User jis bhasha mein likhe (Hindi, English ya Hinglish) usi mein jawab do. Jawab saaf, sahi aur seedha do. Agar kuch pata na ho to ye bolo, andaza mat lagao. Tumhara naam TOXIC AI hai. Apne ko kabhi ChatGPT, OpenAI ya kisi aur model ka naam mat batao. Agar koi pooche ki tumhe kisne banaya, to sirf ye jawab do: TOXIC AI app ko Rupnath (रूपनाथ) ne banaya hai.";
+const RULE = " User jis bhasha mein likhe (Hindi, English ya Hinglish) usi mein jawab do. Jawab saaf, sahi aur seedha do. Agar kuch pata na ho to ye bolo, andaza mat lagao. Tumhara naam TOXIC AI hai. Apne ko kabhi ChatGPT, OpenAI ya kisi aur model ka naam mat batao. Agar koi pooche ki tumhe kisne banaya, to sirf ye jawab do: TOXIC AI app ko रूपनाथ ne banaya hai. Naam sirf Hindi mein aur sirf ek hi baar likho.";
 
 const MODES = [
   {id:"general",name:"🤖 General Assistant",system:"Tum TOXIC AI ho, ek helpful general assistant."},
@@ -210,7 +210,12 @@ function renderChat(notice) {
   const lastIdx = current.messages.length - 1;
   current.messages.forEach((m, i) => {
     const wrap = el("div", "msg " + (m.role === "user" ? "user" : "ai"));
-    wrap.append(el("div", "bubble", m.content));
+    const bub = el("div", "bubble");
+    if (m.role === "assistant") {
+      bub.style.whiteSpace = "normal";
+      bub.append(renderMd(m.content));
+    } else bub.textContent = m.content;
+    wrap.append(bub);
     if (m.role === "assistant") {
       if (m.provider) {
         const pv = el("div", "", "Provider: " + m.provider);
@@ -273,8 +278,12 @@ async function send() {
   const text = input.value.trim();
   if (!text) return;
   if (text.length > 4000) { toast("Message bahut lamba hai (max 4000 akshar)"); return; }
+  if (typeof rec !== "undefined" && rec && listening) { rec.onresult = null; try { rec.abort(); } catch (e) {} }
   input.value = "";
   autosize();
+  input.blur();
+  setTimeout(() => { input.value = ""; autosize(); }, 60);
+  setTimeout(() => { input.value = ""; autosize(); }, 300);
   current.messages.push({ role: "user", content: text, ts: Date.now() });
   if (current.messages.length === 1) {
     const t = toolById(current.toolId);
@@ -338,6 +347,77 @@ async function callAI() {
     setGenerating(false);
     renderChat(notice);
   }
+}
+
+/* ---------- Jawab ki sundar banawat (safe: sirf text nodes) ---------- */
+function inlineMd(parent, text) {
+  text = text.replace(/\\[()\[\]]/g, "");
+  text.split(/(\*\*[^*\n]+\*\*|`[^`\n]+`)/g).forEach((part) => {
+    if (!part) return;
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) parent.append(el("strong", "", part.slice(2, -2)));
+    else if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+      const c = el("code", "", part.slice(1, -1));
+      c.style.cssText = "font-family:monospace;font-size:.92em;padding:1px 5px;border-radius:5px;background:rgba(127,127,160,.2)";
+      parent.append(c);
+    } else parent.append(document.createTextNode(part));
+  });
+}
+function renderMd(text) {
+  const root = el("div");
+  const lines = String(text).replace(/\r/g, "").split("\n");
+  let list = null, listType = "", para = null, i = 0;
+  const endBlocks = () => { list = null; listType = ""; para = null; };
+  while (i < lines.length) {
+    const line = lines[i];
+    const t = line.trim();
+    if (t.startsWith("```")) {
+      endBlocks();
+      const buf = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith("```")) { buf.push(lines[i]); i++; }
+      i++;
+      const pre = el("pre", "", buf.join("\n"));
+      pre.style.cssText = "margin:8px 0;padding:10px 12px;border-radius:10px;overflow-x:auto;white-space:pre;font-family:monospace;font-size:13px;line-height:1.5;background:rgba(127,127,160,.18)";
+      root.append(pre);
+      continue;
+    }
+    if (t === "" || t === "\\[" || t === "\\]") { endBlocks(); i++; continue; }
+    const h = t.match(/^#{1,6}\s+(.*)$/);
+    const ul = t.match(/^[-*•]\s+(.*)$/);
+    const ol = t.match(/^\d+[.)]\s+(.*)$/);
+    if (h) {
+      endBlocks();
+      const d = el("div");
+      d.style.cssText = "font-weight:700;margin:10px 0 4px";
+      inlineMd(d, h[1]);
+      root.append(d);
+    } else if (ul || ol) {
+      const type = ul ? "ul" : "ol";
+      if (!list || listType !== type) {
+        list = el(type);
+        list.style.cssText = "margin:6px 0;padding-left:22px";
+        listType = type;
+        root.append(list);
+      }
+      para = null;
+      const li = el("li");
+      li.style.margin = "3px 0";
+      inlineMd(li, (ul || ol)[1]);
+      list.append(li);
+    } else {
+      list = null; listType = "";
+      if (!para) {
+        para = el("div");
+        para.style.cssText = "margin:6px 0";
+        root.append(para);
+      } else para.append(el("br"));
+      inlineMd(para, t);
+    }
+    i++;
+  }
+  if (root.firstChild) root.firstChild.style.marginTop = "0";
+  if (root.lastChild) root.lastChild.style.marginBottom = "0";
+  return root;
 }
 
 /* ---------- Simple line icons (SVG) ---------- */
