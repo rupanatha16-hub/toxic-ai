@@ -18,12 +18,33 @@
   <div class="hero"><h1>TOXIC AI</h1><p>YOUR AI. YOUR WORLD.</p></div>
 </div>
 
+<div id="scrim"></div>
+
+<aside id="drawer" aria-label="Menu">
+  <div class="d-head">
+    <img src="icon.png" alt="TOXIC AI logo">
+    <b>TOXIC AI</b>
+  </div>
+  <input class="input" id="chatSearch" type="search" placeholder="Search Chats" aria-label="Search Chats">
+  <div class="d-nav">
+    <button class="nav-btn active" data-go="home"><span class="ico" data-icon="home"></span>Home</button>
+    <button class="nav-btn" data-go="tools"><span class="ico" data-icon="tools"></span>Tools</button>
+    <button class="nav-btn" data-go="mode"><span class="ico" data-icon="sliders"></span>AI Mode</button>
+  </div>
+  <div class="section-title">Chats</div>
+  <div class="d-chats" id="chatList"></div>
+  <div class="d-foot">
+    <button class="btn btn-primary" id="newChatBtn"><span class="ico" data-icon="plus" data-size="20"></span>New Chat</button>
+    <button class="icon-btn nav-btn" data-go="settings" aria-label="Settings">⚙️</button>
+  </div>
+</aside>
+
 <div id="app">
 
   <section id="screen-home" class="screen active">
     <div class="topbar">
+      <button class="icon-btn menu-btn" data-icon="menu" aria-label="Menu kholo"></button>
       <h2>TOXIC AI</h2>
-      <button class="icon-btn" id="themeBtn" aria-label="Theme badlo">🌓</button>
     </div>
     <div class="body">
       <div class="hero">
@@ -31,33 +52,47 @@
         <h1>Namaste! 👋</h1>
         <p>Aaj main aapki kya madad karun?</p>
       </div>
-      <button class="btn btn-primary btn-block" id="newChatBtn">✨ New Chat</button>
-      <div class="section-title">AI Mode</div>
-      <select class="select" id="modeSelect" aria-label="AI Mode"></select>
       <div class="section-title">Quick Tools</div>
       <div class="grid" id="quickTools"></div>
-      <div class="section-title">Recent conversations</div>
-      <div id="recentList"></div>
     </div>
-  </section>
-
-  <section id="screen-chats" class="screen">
-    <div class="topbar"><h2>Chats</h2></div>
-    <div class="body">
-      <input class="input" id="chatSearch" type="search" placeholder="Chats mein search karo" style="margin-bottom:12px">
-      <div id="chatList"></div>
+    <div class="composer">
+      <div class="pill">
+        <button class="pill-btn plus-btn" type="button" data-icon="plus" aria-label="Tools kholo"></button>
+        <textarea id="homeInput" rows="1" placeholder="Apna sawal likho..."></textarea>
+        <button class="send" id="homeSend" type="button" data-icon="send" data-size="20" aria-label="Bhejo"></button>
+      </div>
     </div>
   </section>
 
   <section id="screen-tools" class="screen">
-    <div class="topbar"><h2>AI Tools</h2></div>
+    <div class="topbar">
+      <button class="icon-btn menu-btn" data-icon="menu" aria-label="Menu kholo"></button>
+      <h2>AI Tools</h2>
+    </div>
     <div class="body">
       <div class="grid" id="toolsGrid"></div>
     </div>
   </section>
 
+  <section id="screen-mode" class="screen">
+    <div class="topbar">
+      <button class="icon-btn menu-btn" data-icon="menu" aria-label="Menu kholo"></button>
+      <h2>AI Mode</h2>
+    </div>
+    <div class="body">
+      <div class="card">
+        <b>AI Mode chuno</b>
+        <p style="color:var(--muted);font-size:13px;margin:6px 0 10px">Naya chat isi mode mein shuru hoga.</p>
+        <select class="select" id="modeSelect" aria-label="AI Mode"></select>
+      </div>
+    </div>
+  </section>
+
   <section id="screen-settings" class="screen">
-    <div class="topbar"><h2>Settings</h2></div>
+    <div class="topbar">
+      <button class="icon-btn menu-btn" data-icon="menu" aria-label="Menu kholo"></button>
+      <h2>Settings</h2>
+    </div>
     <div class="body">
       <div class="card">
         <div class="row">
@@ -85,22 +120,19 @@
 
   <section id="screen-chat" class="screen">
     <div class="topbar">
-      <button class="icon-btn" id="backBtn" aria-label="Wapas">←</button>
+      <button class="icon-btn menu-btn" data-icon="menu" aria-label="Menu kholo"></button>
       <h2 id="chatTitle">New Chat</h2>
     </div>
     <div class="chat" id="chatBox"></div>
     <div class="composer">
-      <textarea id="msgInput" rows="1" placeholder="Apna sawal likho..."></textarea>
-      <button class="send" id="sendBtn" aria-label="Bhejo">➤</button>
+      <div class="pill">
+        <button class="pill-btn plus-btn" type="button" data-icon="plus" aria-label="Tools kholo"></button>
+        <textarea id="msgInput" rows="1" placeholder="Apna sawal likho..."></textarea>
+        <button class="send" id="sendBtn" type="button" data-icon="send" data-size="20" aria-label="Bhejo"></button>
+      </div>
     </div>
   </section>
 
-  <nav class="bottom-nav" id="bottomNav">
-    <button class="nav-btn active" data-go="home"><span class="ico">🏠</span>Home</button>
-    <button class="nav-btn" data-go="chats"><span class="ico">💬</span>Chats</button>
-    <button class="nav-btn" data-go="tools"><span class="ico">🧰</span>Tools</button>
-    <button class="nav-btn" data-go="settings"><span class="ico">⚙️</span>Settings</button>
-  </nav>
 </div>
 
 <div class="toast" id="toast" hidden></div>
