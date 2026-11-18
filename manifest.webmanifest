@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "TOXIC AI",
+  "short_name": "TOXIC AI",
+  "description": "One App. Multiple AI Brains. Everything AI in One Place.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#10111B",
+  "theme_color": "#10111B",
+  "lang": "hi",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
