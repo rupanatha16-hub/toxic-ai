@@ -92,12 +92,33 @@ let lastMain = "home";
 
 /* ---------- Navigation ---------- */
 function show(name) {
-  document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("active", s.id === "screen-" + name));
-  document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.go === name));
-  $("#bottomNav").style.display = name === "chat" ? "none" : "";
+  document.querySelectorAll(".screen").forEach((x) => x.classList.toggle("active", x.id === "screen-" + name));
+  document.querySelectorAll(".nav-btn").forEach((x) => x.classList.toggle("active", x.dataset.go === name));
   if (name !== "chat") lastMain = name;
-  if (name === "home") renderRecent();
-  if (name === "chats") renderChats();
+  stopSpeaking();
+  closeDrawer();
+}
+function openDrawer() {
+  renderChats();
+  $("#drawer").classList.add("open");
+  $("#scrim").classList.add("open");
+}
+function closeDrawer() {
+  $("#drawer").classList.remove("open");
+  $("#scrim").classList.remove("open");
+}
+function homeSend() {
+  const box = $("#homeInput");
+  const text = box.value.trim();
+  if (!text) return;
+  if (text.length > 4000) { toast("Message bahut lamba hai (max 4000 akshar)"); return; }
+  if (generating) { toast("Pehla jawab aa raha hai, thoda ruko"); return; }
+  if (rec && listening) { rec.onresult = null; try { rec.abort(); } catch (e) {} }
+  box.value = "";
+  autosize(box);
+  newChat($("#modeSelect").value, null);
+  $("#msgInput").value = text;
+  send();
 }
 
 /* ---------- Theme ---------- */
@@ -141,7 +162,6 @@ function chatRow(c) {
       c.title = n.trim().slice(0, 60);
       await dbPut(c);
       renderChats();
-      renderRecent();
     }
   };
   const del = el("button", "icon-btn", "🗑️");
@@ -152,20 +172,12 @@ function chatRow(c) {
     if (confirm("Ye chat delete kar dein?")) {
       await dbDel(c.id);
       renderChats();
-      renderRecent();
       toast("Chat delete ho gayi");
     }
   };
   row.append(ren, del);
   row.onclick = () => openChat(c.id);
   return row;
-}
-async function renderRecent() {
-  const box = $("#recentList");
-  const all = await dbAll();
-  box.textContent = "";
-  if (!all.length) { box.append(el("div", "empty", "Abhi koi chat nahi. New Chat se shuru karo.")); return; }
-  all.slice(0, 3).forEach((c) => box.append(chatRow(c)));
 }
 async function renderChats() {
   const box = $("#chatList");
@@ -253,11 +265,11 @@ function renderChat(notice) {
 function setGenerating(v) {
   generating = v;
   const b = $("#sendBtn");
-  b.textContent = v ? "⏹" : "➤";
+  setIcon(b, v ? "stop" : "send", 20);
   b.setAttribute("aria-label", v ? "Rokho" : "Bhejo");
 }
-function autosize() {
-  const ta = $("#msgInput");
+function autosize(ta) {
+  ta = ta || $("#msgInput");
   ta.style.height = "auto";
   ta.style.height = Math.min(ta.scrollHeight, 120) + "px";
 }
@@ -427,7 +439,14 @@ const ICONS = {
   speak: '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/>',
   stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
   redo: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
-  mic: '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/>'
+  mic: '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/>',
+  menu: '<path d="M4 8h16"/><path d="M4 16h10"/>',
+  plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  send: '<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>',
+  home: '<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/>',
+  tools: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
+  edit: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>',
+  sliders: '<path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/>'
 };
 function setIcon(btn, name, size) {
   const n = size || 20;
@@ -469,16 +488,14 @@ function speakText(text, btn) {
   setIcon(btn, "stop");
   speechSynthesis.speak(u);
 }
-function setupMic() {
+function setupMic(sendBtn, input) {
   if (!SR) return;
-  const send = $("#sendBtn");
   const mic = el("button", "");
   setIcon(mic, "mic", 22);
   mic.style.cssText = "width:44px;height:44px;border-radius:50%;border:none;background:transparent;color:inherit;opacity:.8;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-right:4px;flex:none";
   mic.type = "button";
   mic.setAttribute("aria-label", "Bol kar likho");
-  send.parentNode.insertBefore(mic, send);
-  const input = $("#msgInput");
+  sendBtn.parentNode.insertBefore(mic, sendBtn);
   let base = "";
   mic.onclick = () => {
     if (listening && rec) { rec.stop(); return; }
@@ -506,6 +523,10 @@ function setupMic() {
 /* ---------- Init ---------- */
 async function init() {
   applyTheme(store.get("toxic.theme", "dark"));
+  document.querySelectorAll("[data-icon]").forEach((x) => setIcon(x, x.dataset.icon, Number(x.dataset.size) || 22));
+  document.querySelectorAll(".menu-btn").forEach((x) => { x.onclick = openDrawer; });
+  document.querySelectorAll(".plus-btn").forEach((x) => { x.onclick = () => show("tools"); });
+  $("#scrim").onclick = closeDrawer;
 
   const sel = $("#modeSelect");
   MODES.forEach((m) => { const o = el("option", "", m.name); o.value = m.id; sel.append(o); });
@@ -518,13 +539,14 @@ async function init() {
 
   document.querySelectorAll(".nav-btn").forEach((b) => { b.onclick = () => show(b.dataset.go); });
   $("#newChatBtn").onclick = () => newChat(sel.value, null);
-  $("#backBtn").onclick = () => { stopSpeaking(); show(lastMain); };
-  $("#themeBtn").onclick = toggleTheme;
   $("#themeToggle").onclick = toggleTheme;
   $("#themeToggle").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } };
   $("#sendBtn").onclick = send;
-  setupMic();
-  $("#msgInput").oninput = autosize;
+  setupMic($("#sendBtn"), $("#msgInput"));
+  setupMic($("#homeSend"), $("#homeInput"));
+  $("#homeSend").onclick = homeSend;
+  $("#msgInput").oninput = () => autosize();
+  $("#homeInput").oninput = () => autosize($("#homeInput"));
   $("#chatSearch").oninput = renderChats;
 
   $("#customInstr").value = store.get("toxic.instr", "");
@@ -535,14 +557,13 @@ async function init() {
   $("#clearAll").onclick = async () => {
     if (confirm("Saari chats hamesha ke liye delete ho jayengi. Pakka?")) {
       await dbClear();
-      renderRecent();
       renderChats();
       toast("Saari chats delete ho gayi");
     }
   };
 
   try { await dbOpen(); } catch (e) { toast("Is browser mein chat history save nahi ho sakti"); }
-  renderRecent();
+  renderChats();
 
   setTimeout(() => $("#splash").classList.add("hide"), 900);
 
