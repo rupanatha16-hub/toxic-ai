@@ -99,3 +99,8 @@ body{overflow:hidden}
 .sheet-tile{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 6px;border:0;border-radius:20px;background:var(--card);color:var(--text);font-size:15px;font-family:inherit;cursor:pointer}
 .sheet-tile:active{transform:scale(.98)}
 .sheet-ico{width:56px;height:56px;border-radius:50%;background:var(--bg2);display:grid;place-items:center}
+
+.d-chats .list-item .icon-btn{font-size:0!important;color:var(--text);opacity:.7}
+.d-chats .list-item .icon-btn::before{content:"";display:block;width:18px;height:18px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+.d-chats .list-item .icon-btn[aria-label="Naam badlo"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z'/%3E%3Cpath d='M13.5 6.5l4 4'/%3E%3C/svg%3E")}
+.d-chats .list-item .icon-btn[aria-label="Delete karo"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16'/%3E%3Cpath d='M10 11v6'/%3E%3Cpath d='M14 11v6'/%3E%3Cpath d='M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12'/%3E%3Cpath d='M9 7V4h6v3'/%3E%3C/svg%3E")}
