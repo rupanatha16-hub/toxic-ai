@@ -135,7 +135,66 @@
 
 </div>
 
+<div id="sheetScrim"></div>
+<div id="sheet" role="dialog" aria-label="Add to chat">
+  <div class="sheet-grip"></div>
+  <div class="sheet-head">
+    <button class="icon-btn sheet-x" id="sheetClose" type="button" aria-label="Band karo"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+    <b>Add to chat</b>
+  </div>
+  <div class="sheet-tiles">
+    <button class="sheet-tile" id="sheetFiles" type="button"><span class="sheet-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-5"/><path d="M9.5 14.5L12 12l2.5 2.5"/></svg></span>Files</button>
+    <button class="sheet-tile" id="sheetTools" type="button"><span class="sheet-ico" data-icon="tools" data-size="26"></span>Tools</button>
+    <button class="sheet-tile" id="sheetMode" type="button"><span class="sheet-ico" data-icon="sliders" data-size="26"></span>AI Mode</button>
+  </div>
+</div>
+<input type="file" id="fileInput" hidden accept=".txt,.md,.csv,.json,.js,.html,.css,.py,.java,.c,.cpp,.xml,.log,.sql,text/*">
+
 <div class="toast" id="toast" hidden></div>
+<script>
+(function () {
+  var sheet = document.getElementById("sheet");
+  var scrim = document.getElementById("sheetScrim");
+  var fi = document.getElementById("fileInput");
+  function openSheet() { sheet.classList.add("open"); scrim.classList.add("open"); }
+  function closeSheet() { sheet.classList.remove("open"); scrim.classList.remove("open"); }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest(".plus-btn");
+    if (!b) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openSheet();
+  }, true);
+  scrim.onclick = closeSheet;
+  document.getElementById("sheetClose").onclick = closeSheet;
+  document.getElementById("sheetTools").onclick = function () { closeSheet(); show("tools"); };
+  document.getElementById("sheetMode").onclick = function () { closeSheet(); show("mode"); };
+  document.getElementById("sheetFiles").onclick = function () { closeSheet(); fi.click(); };
+  fi.onchange = function () {
+    var f = fi.files && fi.files[0];
+    fi.value = "";
+    if (!f) return;
+    if (f.size > 1000000) { toast("File bahut badi hai (max 1 MB)"); return; }
+    var r = new FileReader();
+    r.onerror = function () { toast("File padh nahi paya"); };
+    r.onload = function () {
+      var txt = String(r.result || "");
+      if (txt.indexOf("\u0000") !== -1) { toast("Ye text file nahi hai"); return; }
+      var onChat = document.getElementById("screen-chat").classList.contains("active");
+      var box = document.getElementById(onChat ? "msgInput" : "homeInput");
+      var base = box.value.trim() ? box.value.trim() + "\n" : "";
+      var full = base + "[File: " + f.name + "]\n" + txt;
+      var cut = full.length > 4000;
+      if (cut) full = full.slice(0, 4000);
+      box.value = full;
+      autosize(box);
+      box.focus();
+      toast(cut ? "File ka pehla hissa joda (max 4000 akshar)" : "File jud gayi");
+    };
+    r.readAsText(f);
+  };
+})();
+</script>
 <script src="app.js" defer></script>
 </body>
 </html>
