@@ -75,10 +75,27 @@ body{overflow:hidden}
 .nav-btn .ico{display:grid;place-items:center}
 .nav-btn.active{background:var(--card)}
 .d-chats{flex:1;overflow-y:auto;min-height:0}
-.d-chats .list-item{padding:10px;gap:8px;margin-bottom:8px}
+.d-chats .list-item{padding:9px 8px 9px 12px;gap:4px;margin-bottom:2px;border:0;background:transparent;border-radius:10px}
+.d-chats .list-item:active{background:var(--card)}
+.d-chats .list-item>span:first-child{display:none}
+.d-chats .list-item .title{font-weight:400;font-size:15px}
+.d-chats .list-item .sub{display:none}
+.d-chats .list-item .icon-btn{width:30px!important;height:30px!important;font-size:13px!important;border:0;background:transparent;border-radius:8px;opacity:.55}
 .d-chats .empty{padding:20px 8px;font-size:14px}
 .d-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px}
 .d-foot .btn{display:flex;align-items:center;gap:8px;flex:1;justify-content:center}
 .d-foot .btn .ico{display:grid;place-items:center}
 .icon-btn.nav-btn{width:48px;height:48px;padding:0;justify-content:center;border:1px solid var(--border);background:var(--card);border-radius:50%}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+#sheetScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:44}
+#sheetScrim.open{opacity:1;pointer-events:auto}
+#sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:560px;background:var(--bg2);border-radius:28px 28px 0 0;border:1px solid var(--border);border-bottom:0;z-index:45;padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateY(105%);visibility:hidden;transition:transform .25s,visibility 0s .25s}
+#sheet.open{transform:none;visibility:visible;transition:transform .25s}
+.sheet-grip{width:44px;height:5px;border-radius:3px;background:var(--border);margin:0 auto 8px}
+.sheet-head{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;margin-bottom:12px;font-size:18px}
+.sheet-x{position:absolute;left:0;top:2px;border:0;background:transparent;border-radius:50%}
+.sheet-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sheet-tile{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 6px;border:0;border-radius:20px;background:var(--card);color:var(--text);font-size:15px;font-family:inherit;cursor:pointer}
+.sheet-tile:active{transform:scale(.98)}
+.sheet-ico{width:56px;height:56px;border-radius:50%;background:var(--bg2);display:grid;place-items:center}
