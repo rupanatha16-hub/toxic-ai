@@ -36,7 +36,7 @@
       "#authGate .tag{margin:0;color:var(--muted)}" +
       "#authGate .btnbox{min-height:44px;margin-top:18px;display:flex;justify-content:center}" +
       "#authGate .msg{min-height:20px;margin:0;font-size:13px;color:var(--muted);max-width:300px}" +
-      "#authGate .guest{border:0;background:none;color:var(--lav);font-size:14px;cursor:pointer;padding:10px;font-family:inherit;text-decoration:underline}" +
+      "#authGate .guest{border:0;background:none;color:var(--primary);font-size:14px;cursor:pointer;padding:10px;font-family:inherit;text-decoration:underline}" +
       ".acct{display:flex;align-items:center;gap:14px}" +
       ".acct .av{width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--grad);flex-shrink:0;display:grid;place-items:center;color:#fff;font-size:22px;font-weight:700}" +
       ".acct .who{flex:1;min-width:0}" +
@@ -62,7 +62,7 @@
     guest.onclick = function () {
       save({ guest: true, name: "Guest" });
       gate.hidden = true;
-      renderAccount();
+      notify();
     };
     gate.append(box, msg, guest);
     document.body.appendChild(gate);
@@ -75,7 +75,7 @@
       var p = parseJwt(resp.credential);
       save({ guest: false, sub: p.sub, name: p.name || "", email: p.email || "", picture: p.picture || "" });
       gate.hidden = true;
-      renderAccount();
+      notify();
     } catch (e) {
       setMsg("Login nahi ho paya. Dobara koshish karo.");
     }
@@ -108,57 +108,31 @@
     ensureGsi();
   }
 
-  function signOut() {
-    if (!confirm("Sign out karna hai?")) return;
+  function doSignOut(ask) {
+    if (ask && !confirm(ask)) return;
     clear();
     try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
-    renderAccount();
+    notify();
     showGate();
   }
 
-  function renderAccount() {
-    var body = document.querySelector("#screen-settings .body");
-    if (!body) return;
-    var old = document.getElementById("acctCard");
-    if (old) old.remove();
-    var u = load();
-    if (!u) return;
-    var card = mk("div", "card");
-    card.id = "acctCard";
-    var row = mk("div", "acct");
-    var av;
-    if (u.picture) {
-      av = mk("img", "av");
-      av.src = u.picture;
-      av.alt = "";
-      av.referrerPolicy = "no-referrer";
-    } else {
-      av = mk("div", "av", (u.name || "G").charAt(0).toUpperCase());
-    }
-    var who = mk("div", "who");
-    who.append(mk("b", "", u.guest ? "Guest" : (u.name || "TOXIC AI user")));
-    who.append(mk("span", "", u.guest ? "Login nahi kiya" : (u.email || "")));
-    row.append(av, who);
-    card.append(row);
-    var btn = mk("button", "btn btn-block", u.guest ? "Google se sign in karo" : "Sign out");
-    btn.type = "button";
-    btn.style.marginTop = "12px";
-    btn.onclick = function () {
-      if (u.guest) { clear(); renderAccount(); showGate(); } else { signOut(); }
-    };
-    card.append(btn);
-    body.insertBefore(card, body.firstChild);
+  function notify() {
+    try { window.dispatchEvent(new Event("toxic-auth")); } catch (e) {}
   }
 
   function start() {
     injectCss();
     buildGate();
-    renderAccount();
+    notify();
     if (!load()) showGate();
   }
 
-  window.ToxicAuth = { user: load, signOut: signOut };
+  window.ToxicAuth = {
+    user: load,
+    signOut: function () { doSignOut("Log out karna hai?"); },
+    switchAccount: function () { doSignOut("Account badalna hai? Abhi wala account log out ho jayega."); },
+    signIn: function () { doSignOut(); }
+  };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
 })();
-      
