@@ -115,6 +115,7 @@
     fileimg: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="10" cy="12" r="2"/><path d="m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"/>'
   };
   for (var k2 in IC2) IC[k2] = IC2[k2];
+  IC.qr = '<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>';
   var TOOL_IC = {
     w_email: "mail", w_essay: "essay", w_story: "story", w_poem: "feather", w_shayari: "heart", w_blog: "rss", w_article: "news",
     w_social: "share", w_insta: "camera", w_yts: "play", w_resume: "user", w_cover: "brief", w_prod: "pack", w_grammar: "spell",
@@ -871,8 +872,12 @@
 
   /* ---------- Sab tools ek jagah ---------- */
   var ALL = AI.concat(B);
-  var CATS = [["all", "All"], ["writer", "Writer"], ["code", "Code"], ["study", "Study"], ["daily", "Daily"], ["photo", "Photo"], ["pdf", "Docs"], ["video", "Video"], ["voice", "Voice"]];
-  var CAT_ICON = { writer: "pen", code: "code", study: "book", daily: "calc", photo: "image", pdf: "file", video: "video", voice: "speaker" };
+  /* QR Tools: alag page (qr.html) kholta hai, usi tab mein; qr.html ka peeche-tir app par wapas laata hai */
+  ALL.unshift({ id: "x_qr", cat: "qr", ic: "qr", name: "QR Tools", desc: "QR banao aur scan karo", href: "qr.html" });
+  /* Sabse kaam ke tools (All mein sabse upar dikhte hain) */
+  var TOP = ["x_qr", "f_pdf", "p_edit", "f_pdfview"];
+  var CATS = [["all", "All"], ["qr", "QR"], ["pdf", "Docs"], ["photo", "Photo"], ["daily", "Daily"], ["voice", "Voice"], ["writer", "Writer"], ["study", "Study"], ["code", "Code"], ["video", "Video"]];
+  var CAT_ICON = { qr: "qr", writer: "pen", code: "code", study: "book", daily: "calc", photo: "image", pdf: "file", video: "video", voice: "speaker" };
   function byId(id) { for (var i = 0; i < ALL.length; i++) if (ALL[i].id === id) return ALL[i]; return null; }
 
   var cat = "all", query = "", openTool = null, cleanup = null;
@@ -882,7 +887,7 @@
     var b = h("button", "tool st-card"); b.type = "button";
     var ic = icon(TOOL_IC[t.id] || t.ic, 24); ic.classList.add("st-ico-box");
     b.append(ic, h("b", "", t.name), h("small", "", t.desc));
-    b.onclick = function () { open(t); };
+    b.onclick = function () { if (t.href) { location.href = t.href; return; } open(t); };
     return b;
   }
   function section(title, list) {
@@ -917,9 +922,10 @@
     if (!qq && cat === "all") {
       var fav = store.get("toxic.st.fav", []).map(byId).filter(Boolean);
       var rec = store.get("toxic.st.recent", []).map(byId).filter(Boolean).slice(0, 6);
+      var top = section("Sabse kaam ke tools", TOP.map(byId).filter(Boolean)); if (top) res.append(top);
       var a = section("Favourite tools", fav); if (a) res.append(a);
       var b = section("Haal mein use kiye", rec); if (b) res.append(b);
-      CATS.slice(1).forEach(function (c) { var s = section(c[1], ALL.filter(function (t) { return t.cat === c[0]; })); if (s) res.append(s); });
+      CATS.slice(1).forEach(function (c) { var s = section(c[1], ALL.filter(function (t) { return t.cat === c[0] && TOP.indexOf(t.id) < 0; })); if (s) res.append(s); });
     } else if (!list.length) res.append(h("div", "empty", "Koi tool nahi mila"));
     else { var g = h("div", "grid"); list.forEach(function (t) { g.append(card(t)); }); res.append(g); }
   }
