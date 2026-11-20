@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10111B">
+<title>QR Tools - TOXIC AI</title>
+<link rel="icon" href="icon.png">
+<style>
+:root{--bg:#10111B;--card:#1b1c2c;--line:#3a3b55;--text:#F7F7FC;--sub:#C7B8FF;--mut:#8e8fa8;--pri:#7055E8;--blue:#397BFF;--cyan:#29D9E8;--err:#ff8a8a}
+@media (prefers-color-scheme:light){:root{--bg:#F7F7FC;--card:#ffffff;--line:#d6d2ec;--text:#10111B;--sub:#5a45c9;--mut:#6b6c85;--cyan:#0b7f8a;--err:#c0262d}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Devanagari",sans-serif;font-size:15px;line-height:1.5;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:480px;margin:0 auto;padding:14px 16px 32px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.top{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.back{display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-10px;color:var(--sub);border-radius:50%}
+h1{font-size:19px;font-weight:600;margin:0}
+.seg{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;margin:0 0 16px}
+.seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;border:0;border-radius:9px;background:transparent;color:var(--sub);font:inherit;font-size:14px;cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--pri);color:#F7F7FC;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{min-height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--line);background:transparent;color:var(--sub);font:inherit;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--pri);border-color:var(--pri);color:#F7F7FC;font-weight:600}
+input,textarea,select{width:100%;min-height:46px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font:inherit;font-size:15px;margin:0 0 10px}
+textarea{min-height:92px;resize:vertical}
+input::placeholder,textarea::placeholder{color:var(--mut)}
+.hint{margin:-4px 0 10px;font-size:13px;color:var(--mut)}
+.err{min-height:20px;margin:0 0 8px;font-size:13px;color:var(--err)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;border-radius:10px;border:0;background:var(--pri);color:#F7F7FC;font:inherit;font-weight:600;font-size:15px;cursor:pointer}
+.ghost{background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-weight:500;font-size:14px}
+.row{display:flex;gap:8px;margin-top:10px}
+.row .btn{flex:1}
+.qrbox{background:#ffffff;border-radius:14px;padding:16px;display:flex;justify-content:center;margin:16px 0 0}
+.qrbox canvas{width:100%;max-width:260px;height:auto;display:block}
+.view{position:relative;height:230px;border-radius:14px;overflow:hidden;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 0 10px}
+.view video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.view.on video{display:block}
+.frame{position:relative;width:150px;height:150px;color:var(--cyan)}
+.frame svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round}
+.line{position:absolute;left:12px;right:12px;top:12px;height:2px;background:var(--pri);display:none}
+.view.on .line{display:block;animation:sweep 2s ease-in-out infinite alternate}
+@keyframes sweep{to{top:136px}}
+@media (prefers-reduced-motion:reduce){.view.on .line{animation:none;top:75px}}
+.msg{text-align:center;color:var(--sub);font-size:14px;margin:0 0 12px;min-height:21px}
+.res{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:14px 0 0;background:var(--card)}
+.res small{display:block;color:var(--mut);font-size:12px;margin:0 0 4px}
+.res p{margin:0 0 12px;word-break:break-all;white-space:pre-wrap;font-size:15px}
+.res .row{margin-top:0}
+.open{background:var(--blue);text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M5 12h14M5 12l6 6M5 12l6-6"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5 5-5M12 4v12"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+<symbol id="i-open" viewBox="0 0 24 24"><path d="M12 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6M11 13l9-9M15 4h5v5"/></symbol>
+<symbol id="i-cam" viewBox="0 0 24 24"><path d="M5 7h1a2 2 0 0 0 2-2 1 1 0 0 1 1-1h6a1 1 0 0 1 1 1 2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="3"/></symbol>
+<symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M15 8h.01M3 16l5-5c.9-.9 2.1-.9 3 0l5 5M14 14l1-1c.9-.9 2.1-.9 3 0l3 3"/></symbol>
+<symbol id="i-qr" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2M18 14h2M14 18h2M18 18h2"/></symbol>
+<symbol id="i-redo" viewBox="0 0 24 24"><path d="M20 11A8 8 0 0 0 5.6 7M4 5v4h4M4 13a8 8 0 0 0 14.4 4M20 19v-4h-4"/></symbol>
+</defs>
+</svg>
+
+<div class="wrap">
+<header class="top">
+<a class="back" href="./" aria-label="App par wapas jao"><svg class="ic"><use href="#i-back"/></svg></a>
+<h1 id="ttl">QR Generator</h1>
+</header>
+
+<div class="seg" role="tablist" aria-label="QR tools">
+<button id="tab-gen" role="tab" aria-selected="true" aria-controls="gen"><svg class="ic"><use href="#i-qr"/></svg>Generator</button>
+<button id="tab-scan" role="tab" aria-selected="false" aria-controls="scan"><svg class="ic"><use href="#i-cam"/></svg>Scanner</button>
+</div>
+
+<section id="gen" role="tabpanel" aria-labelledby="tab-gen">
+<div class="chips" role="group" aria-label="QR ka prakar">
+<button class="chip" data-t="link" aria-pressed="true">Link</button>
+<button class="chip" data-t="text" aria-pressed="false">Text</button>
+<button class="chip" data-t="phone" aria-pressed="false">Phone</button>
+<button class="chip" data-t="whatsapp" aria-pressed="false">WhatsApp</button>
+<button class="chip" data-t="wifi" aria-pressed="false">WiFi</button>
+</div>
+<div id="g-main"><label class="sr" for="f-main">Likho</label><input id="f-main" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://rupanatha16-hub.github.io/toxic-ai/"></div>
+<div id="g-text" hidden><label class="sr" for="f-text">Text</label><textarea id="f-text" placeholder="Kuch bhi likho"></textarea></div>
+<div id="g-wifi" hidden>
+<label class="sr" for="f-ssid">WiFi ka naam</label><input id="f-ssid" type="text" autocomplete="off" autocapitalize="off" placeholder="WiFi ka naam">
+<label class="sr" for="f-pass">WiFi ka password</label><input id="f-pass" type="text" autocomplete="off" autocapitalize="off" placeholder="Password">
+<label class="sr" for="f-sec">Suraksha ka prakar</label><select id="f-sec"><option value="WPA">WPA / WPA2</option><option value="WEP">WEP</option><option value="nopass">Bina password</option></select>
+</div>
+<p class="hint" id="hint" hidden></p>
+<p class="err" id="err" role="alert"></p>
+<button class="btn" id="make" type="button">QR banao</button>
+<div id="out" hidden>
+<div class="qrbox"><canvas id="cvs" role="img" aria-label="Bana hua QR code"></canvas></div>
+<div class="row">
+<button class="btn ghost" id="save" type="button"><svg class="ic"><use href="#i-down"/></svg>Save image</button>
+<button class="btn ghost" id="shr" type="button"><svg class="ic"><use href="#i-share"/></svg>Share</button>
+</div>
+<p class="msg" id="gmsg" aria-live="polite" style="margin-top:10px"></p>
+</div>
+</section>
+
+<section id="scan" role="tabpanel" aria-labelledby="tab-scan" hidden>
+<div class="view" id="view">
+<video id="vid" playsinline muted></video>
+<div class="frame"><svg viewBox="0 0 150 150" aria-hidden="true"><path d="M4 38V10a6 6 0 0 1 6-6h28"/><path d="M112 4h28a6 6 0 0 1 6 6v28"/><path d="M146 112v28a6 6 0 0 1-6 6h-28"/><path d="M38 146H10a6 6 0 0 1-6-6v-28"/></svg><div class="line"></div></div>
+</div>
+<p class="msg" id="smsg" aria-live="polite">Camera ko QR par rakho</p>
+<div class="row" style="margin-top:0">
+<button class="btn ghost" id="cam" type="button"><svg class="ic"><use href="#i-cam"/></svg>Camera shuru karo</button>
+<button class="btn ghost" id="gal" type="button"><svg class="ic"><use href="#i-photo"/></svg>Gallery se chuno</button>
+</div>
+<input id="file" type="file" accept="image/*" hidden>
+<div class="res" id="res" hidden>
+<small>Result</small>
+<p id="rtxt"></p>
+<div class="row">
+<a class="btn open" id="ropen" href="#" target="_blank" rel="noopener noreferrer" hidden><svg class="ic"><use href="#i-open"/></svg>Open</a>
+<button class="btn ghost" id="rcopy" type="button"><svg class="ic"><use href="#i-copy"/></svg>Copy</button>
+</div>
+<div class="row"><button class="btn ghost" id="again" type="button"><svg class="ic"><use href="#i-redo"/></svg>Dobara scan karo</button></div>
+</div>
+</section>
+</div>
+
+<script>
+var QR=(function(){
+var ECC=[0,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28];
+var BLK=[0,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49];
+function raw(v){var r=(16*v+128)*v+64;if(v>=2){var n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36;}return r;}
+function dcw(v){return Math.floor(raw(v)/8)-ECC[v]*BLK[v];}
+function mul(x,y){var z=0;for(var i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x;}return z;}
+function divisor(d){var r=[],i,j,root=1;for(i=0;i<d;i++)r.push(0);r[d-1]=1;for(i=0;i<d;i++){for(j=0;j<d;j++){r[j]=mul(r[j],root);if(j+1<d)r[j]^=r[j+1];}root=mul(root,2);}return r;}
+function rem(data,div){var r=div.map(function(){return 0;});data.forEach(function(b){var f=b^r.shift();r.push(0);div.forEach(function(c,i){r[i]^=mul(c,f);});});return r;}
+function make(text){
+var bytes=Array.from(new TextEncoder().encode(text)),ver,cap,i,j,k;
+for(ver=1;;ver++){cap=dcw(ver)*8;if(4+(ver<=9?8:16)+bytes.length*8<=cap)break;if(ver>=40)throw new Error('long');}
+var bits=[];
+function put(v,n){for(var k=n-1;k>=0;k--)bits.push((v>>>k)&1);}
+put(4,4);put(bytes.length,ver<=9?8:16);bytes.forEach(function(b){put(b,8);});
+put(0,Math.min(4,cap-bits.length));put(0,(8-bits.length%8)%8);
+for(var pad=0xEC;bits.length<cap;pad^=0xEC^0x11)put(pad,8);
+var data=[];for(i=0;i<bits.length;i+=8){var b=0;for(j=0;j<8;j++)b=(b<<1)|bits[i+j];data.push(b);}
+var nb=BLK[ver],el=ECC[ver],rw=Math.floor(raw(ver)/8),sn=nb-rw%nb,sl=Math.floor(rw/nb),blocks=[],dv=divisor(el);
+for(i=0,k=0;i<nb;i++){var dat=data.slice(k,k+sl-el+(i<sn?0:1));var k2=dat.length;var ecc=rem(dat,dv);if(i<sn)dat.push(0);blocks.push(dat.concat(ecc));k+=k2;}
+var all=[];for(i=0;i<blocks[0].length;i++)blocks.forEach(function(bl,jj){if(i!=sl-el||jj>=sn)all.push(bl[i]);});
+var size=ver*4+17,m=[],fn=[];
+for(i=0;i<size;i++){m.push(new Array(size).fill(false));fn.push(new Array(size).fill(false));}
+function set(x,y,d){m[y][x]=d;fn[y][x]=true;}
+function finder(x,y){for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){var d=Math.max(Math.abs(dx),Math.abs(dy)),xx=x+dx,yy=y+dy;if(xx>=0&&xx<size&&yy>=0&&yy<size)set(xx,yy,d!=2&&d!=4);}}
+function align(x,y){for(var dy=-2;dy<=2;dy++)for(var dx=-2;dx<=2;dx++)set(x+dx,y+dy,Math.max(Math.abs(dx),Math.abs(dy))!=1);}
+function fmt(mask){var d=mask,r=d,x;for(x=0;x<10;x++)r=(r<<1)^((r>>>9)*0x537);var bb=((d<<10)|r)^0x5412;
+function g(n){return((bb>>>n)&1)!=0;}
+for(x=0;x<=5;x++)set(8,x,g(x));set(8,7,g(6));set(8,8,g(7));set(7,8,g(8));for(x=9;x<15;x++)set(14-x,8,g(x));
+for(x=0;x<8;x++)set(size-1-x,8,g(x));for(x=8;x<15;x++)set(8,size-15+x,g(x));set(8,size-8,true);}
+for(i=0;i<size;i++){set(6,i,i%2==0);set(i,6,i%2==0);}
+finder(3,3);finder(size-4,3);finder(3,size-4);
+var ap=[];
+if(ver>1){var na=Math.floor(ver/7)+2,step=ver==32?26:Math.ceil((ver*4+4)/(na*2-2))*2;ap=[6];for(var p=size-7;ap.length<na;p-=step)ap.splice(1,0,p);}
+for(i=0;i<ap.length;i++)for(j=0;j<ap.length;j++){if((i==0&&j==0)||(i==0&&j==ap.length-1)||(i==ap.length-1&&j==0))continue;align(ap[i],ap[j]);}
+fmt(0);
+if(ver>=7){var vr=ver;for(i=0;i<12;i++)vr=(vr<<1)^((vr>>>11)*0x1F25);var vb=(ver<<12)|vr;for(i=0;i<18;i++){var c=((vb>>>i)&1)!=0,a=size-11+i%3,bq=Math.floor(i/3);set(a,bq,c);set(bq,a,c);}}
+var idx=0;
+for(var right=size-1;right>=1;right-=2){if(right==6)right=5;for(var vert=0;vert<size;vert++)for(j=0;j<2;j++){var x2=right-j,up=((right+1)&2)==0,y2=up?size-1-vert:vert;if(!fn[y2][x2]&&idx<all.length*8){m[y2][x2]=((all[idx>>>3]>>>(7-(idx&7)))&1)!=0;idx++;}}}
+function mk(mask){for(var y=0;y<size;y++)for(var x=0;x<size;x++){var inv;switch(mask){case 0:inv=(x+y)%2==0;break;case 1:inv=y%2==0;break;case 2:inv=x%3==0;break;case 3:inv=(x+y)%3==0;break;case 4:inv=(Math.floor(x/3)+Math.floor(y/2))%2==0;break;case 5:inv=x*y%2+x*y%3==0;break;case 6:inv=(x*y%2+x*y%3)%2==0;break;default:inv=((x+y)%2+x*y%3)%2==0;}if(inv&&!fn[y][x])m[y][x]=!m[y][x];}}
+function pen(){var r=0,dark=0,t,a,bb2;
+for(t=0;t<2;t++){for(a=0;a<size;a++){var run=1,w=[];for(bb2=0;bb2<size;bb2++){var cc=t?m[bb2][a]:m[a][bb2];w.push(cc?1:0);if(bb2>0&&cc==(t?m[bb2-1][a]:m[a][bb2-1])){run++;if(run==5)r+=3;else if(run>5)r++;}else run=1;}
+for(bb2=0;bb2+11<=size;bb2++){var s=w.slice(bb2,bb2+11).join('');if(s=='10111010000'||s=='00001011101')r+=40;}}}
+for(var y=0;y<size;y++)for(var x=0;x<size;x++){if(m[y][x])dark++;if(x<size-1&&y<size-1&&m[y][x]==m[y][x+1]&&m[y][x]==m[y+1][x]&&m[y][x]==m[y+1][x+1])r+=3;}
+var tot=size*size;r+=(Math.ceil(Math.abs(dark*20-tot*10)/tot)-1)*10;return r;}
+var best=0,bp=1e9;
+for(i=0;i<8;i++){mk(i);fmt(i);var pp=pen();if(pp<bp){bp=pp;best=i;}mk(i);}
+mk(best);fmt(best);
+return{size:size,version:ver,get:function(x,y){return m[y][x];}};
+}
+return{make:make};
+})();
+
+</script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i);};
+var T='link',lastText='',stream=null,timer=null,busy=false,scanFn=null;
+var CFG={
+link:{ph:'https://rupanatha16-hub.github.io/toxic-ai/',type:'url',mode:'url',msg:'Pehle link likho.'},
+phone:{ph:'+919876543210',type:'tel',mode:'tel',msg:'Sahi phone number likho.'},
+whatsapp:{ph:'919876543210',type:'tel',mode:'tel',msg:'Desh ke code ke saath number likho, jaise 919876543210.',hint:'Desh ke code ke saath likho, bina + ke.'},
+text:{msg:'Pehle kuch likho.'},
+wifi:{msg:'WiFi ka naam likho.'}
+};
+function flash(el,txt,ms){el.textContent=txt;if(ms){setTimeout(function(){if(el.textContent===txt)el.textContent='';},ms);}}
+
+/* tabs */
+function tab(which){
+var g=which==='gen';
+$('gen').hidden=!g;$('scan').hidden=g;
+$('tab-gen').setAttribute('aria-selected',g);$('tab-scan').setAttribute('aria-selected',!g);
+$('ttl').textContent=g?'QR Generator':'QR Scanner';
+if(g){stopCam();}else{startCam();}
+}
+$('tab-gen').onclick=function(){tab('gen');};
+$('tab-scan').onclick=function(){tab('scan');};
+
+/* generator */
+var chips=document.querySelectorAll('.chip');
+Array.prototype.forEach.call(chips,function(c){c.onclick=function(){setType(c.getAttribute('data-t'));};});
+function setType(t){
+T=t;
+Array.prototype.forEach.call(chips,function(c){c.setAttribute('aria-pressed',c.getAttribute('data-t')===t);});
+var cf=CFG[t];
+$('g-main').hidden=(t==='text'||t==='wifi');
+$('g-text').hidden=(t!=='text');
+$('g-wifi').hidden=(t!=='wifi');
+if(cf.ph){var f=$('f-main');f.placeholder=cf.ph;f.type=cf.type;f.setAttribute('inputmode',cf.mode);}
+$('hint').hidden=!cf.hint;$('hint').textContent=cf.hint||'';
+$('err').textContent='';$('out').hidden=true;
+}
+['f-main','f-text','f-ssid','f-pass'].forEach(function(id){$(id).addEventListener('input',function(){$('err').textContent='';});});
+function wesc(s){return s.replace(/([\\;,:"])/g,'\\$1');}
+function build(){
+var v,d;
+if(T==='text'){return $('f-text').value.trim();}
+if(T==='wifi'){
+var s=$('f-ssid').value.trim(),p=$('f-pass').value,sec=$('f-sec').value;
+if(!s)return '';
+if(sec!=='nopass'&&!p){$('err').textContent='WiFi ka password likho.';return null;}
+return 'WIFI:T:'+sec+';S:'+wesc(s)+';'+(sec==='nopass'?'':'P:'+wesc(p)+';')+';';
+}
+v=$('f-main').value.trim();
+if(!v)return '';
+if(T==='link'){return /^[a-z][a-z0-9+.\-]*:/i.test(v)?v:'https://'+v;}
+if(T==='phone'){d=v.replace(/[^\d+]/g,'');return d.replace(/\D/g,'').length<6?'':'tel:'+d;}
+d=v.replace(/\D/g,'');return d.length<8?'':'https://wa.me/'+d;
+}
+function draw(q){
+var qz=4,px=Math.max(4,Math.floor(640/(q.size+2*qz))),n=(q.size+2*qz)*px,c=$('cvs'),x=c.getContext('2d');
+c.width=n;c.height=n;x.fillStyle='#ffffff';x.fillRect(0,0,n,n);x.fillStyle='#10111B';
+for(var yy=0;yy<q.size;yy++)for(var xx=0;xx<q.size;xx++){if(q.get(xx,yy))x.fillRect((xx+qz)*px,(yy+qz)*px,px,px);}
+}
+$('make').onclick=function(){
+$('err').textContent='';$('gmsg').textContent='';
+var v=build();
+if(v===null)return;
+if(!v){$('err').textContent=CFG[T].msg;return;}
+var q;
+try{q=QR.make(v);}catch(e){$('err').textContent='Ye bahut lamba hai. Chhota karke dekho.';return;}
+lastText=v;draw(q);$('out').hidden=false;
+$('out').scrollIntoView({block:'nearest'});
+};
+function pngBlob(cb){$('cvs').toBlob(cb,'image/png');}
+$('save').onclick=function(){
+pngBlob(function(b){
+if(!b){flash($('gmsg'),'Image nahi ban payi. Dobara try karo.',4000);return;}
+var u=URL.createObjectURL(b),a=document.createElement('a');
+a.href=u;a.download='toxic-ai-qr.png';document.body.appendChild(a);a.click();a.remove();
+setTimeout(function(){URL.revokeObjectURL(u);},4000);
+flash($('gmsg'),'Image save ho rahi hai.',3000);
+});
+};
+$('shr').onclick=function(){
+pngBlob(function(b){
+if(!b)return;
+var f=null;try{f=new File([b],'toxic-ai-qr.png',{type:'image/png'});}catch(e){}
+if(f&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'QR code'}).catch(function(){});}
+else if(navigator.share){navigator.share({title:'QR code',text:lastText}).catch(function(){});}
+else{flash($('gmsg'),'Is browser mein share nahi chalta. Save image dabao.',5000);}
+});
+};
+
+/* scanner */
+function getScanner(){
+if(scanFn)return Promise.resolve(scanFn);
+if('BarcodeDetector' in window){
+var bd=new BarcodeDetector({formats:['qr_code']});
+scanFn=function(src){return bd.detect(src).then(function(r){return r.length?r[0].rawValue:null;});};
+return Promise.resolve(scanFn);
+}
+return new Promise(function(res,rej){
+var s=document.createElement('script');
+s.src='https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+s.onload=function(){
+var cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+scanFn=function(src){
+var w=src.videoWidth||src.width,h=src.videoHeight||src.height;
+if(!w||!h)return Promise.resolve(null);
+cv.width=w;cv.height=h;cx.drawImage(src,0,0,w,h);
+var r=window.jsQR(cx.getImageData(0,0,w,h).data,w,h);
+return Promise.resolve(r?r.data:null);
+};
+res(scanFn);
+};
+s.onerror=function(){rej(new Error('noscan'));};
+document.head.appendChild(s);
+});
+}
+function stopCam(){
+if(timer){clearInterval(timer);timer=null;}
+if(stream){stream.getTracks().forEach(function(t){t.stop();});stream=null;}
+$('vid').srcObject=null;$('view').classList.remove('on');
+}
+function showRes(t){
+stopCam();
+$('rtxt').textContent=t;
+var a=$('ropen'),ok=/^(https?:\/\/|tel:|mailto:|sms:)/i.test(t);
+a.hidden=!ok;if(ok)a.href=t;
+$('res').hidden=false;
+$('smsg').textContent='QR mil gaya';
+if(navigator.vibrate){try{navigator.vibrate(60);}catch(e){}}
+}
+function startCam(){
+stopCam();$('res').hidden=true;
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('smsg').textContent='Is browser mein camera nahi khulta. Gallery se chuno.';return;}
+$('smsg').textContent='Camera khul raha hai...';
+navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}).then(function(s){
+stream=s;var v=$('vid');v.srcObject=s;v.play().catch(function(){});
+$('view').classList.add('on');$('smsg').textContent='Camera ko QR par rakho';
+return getScanner();
+}).then(function(fn){
+timer=setInterval(function(){
+var v=$('vid');
+if(busy||!stream||v.readyState<2)return;
+busy=true;
+fn(v).then(function(t){busy=false;if(t&&stream)showRes(t);}).catch(function(){busy=false;});
+},250);
+}).catch(function(e){
+stopCam();
+var n=e&&e.name;
+$('smsg').textContent=(n==='NotAllowedError'||n==='SecurityError')?'Camera ki ijazat nahi mili. Browser settings mein camera allow karo.':(e&&e.message==='noscan')?'Scanner abhi load nahi hua. Internet check karo.':'Camera nahi khul paya. Gallery se chuno.';
+});
+}
+$('cam').onclick=startCam;
+$('again').onclick=startCam;
+$('gal').onclick=function(){$('file').click();};
+$('file').onchange=function(){
+var f=this.files&&this.files[0];this.value='';
+if(!f)return;
+stopCam();$('res').hidden=true;$('smsg').textContent='Image padh raha hoon...';
+var load=window.createImageBitmap?createImageBitmap(f):new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i);};i.onerror=rej;i.src=URL.createObjectURL(f);});
+Promise.all([load,getScanner()]).then(function(r){return r[1](r[0]);}).then(function(t){
+if(t)showRes(t);else $('smsg').textContent='Is image mein QR nahi mila.';
+}).catch(function(){$('smsg').textContent='Image nahi padh payi. Dusri image try karo.';});
+};
+$('rcopy').onclick=function(){
+var t=$('rtxt').textContent,b=this;
+function done(){var o=b.lastChild.textContent;b.lastChild.textContent='Copy ho gaya';setTimeout(function(){b.lastChild.textContent=o;},1500);}
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){});}
+else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');done();}catch(e){}a.remove();}
+};
+document.addEventListener('visibilitychange',function(){if(document.hidden)stopCam();});
+window.addEventListener('pagehide',stopCam);
+})();
+</script>
+</body>
+</html>
