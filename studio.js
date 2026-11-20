@@ -67,6 +67,68 @@
     list: '<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>',
     sw: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/>'
   };
+
+  /* ---------- tool ke hisaab ke alag icons ---------- */
+  var IC2 = {
+    mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+    essay: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>',
+    story: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+    feather: '<path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/>',
+    heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    rss: '<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>',
+    news: '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>',
+    share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
+    camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+    play: '<path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/>',
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    brief: '<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+    pack: '<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+    spell: '<path d="m6 16 6-12 6 12"/><path d="M8 12h8"/><path d="m16 20 2 2 4-4"/>',
+    align: '<line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/>',
+    refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+    bulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+    chat: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+    bug: '<path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/>',
+    term: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
+    db: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    braces: '<path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/>',
+    cpu: '<rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/>',
+    hash: '<line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/>',
+    swap: '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
+    alert: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+    sigma: '<path d="M18 7V5a1 1 0 0 0-1-1H6.5a.5.5 0 0 0-.4.8l4.5 6a2 2 0 0 1 0 2.4l-4.5 6a.5.5 0 0 0 .4.8H17a1 1 0 0 0 1-1v-2"/>',
+    help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+    checks: '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+    cap: '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+    note: '<path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/>',
+    lang: '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
+    layers: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+    clip: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+    film: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/>',
+    type: '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>',
+    caption: '<rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><path d="M7 15h4m4 0h2M7 11h2m4 0h4"/>',
+    ruler: '<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/>',
+    cake: '<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/>',
+    wand: '<path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/>',
+    sliders: '<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+    fileimg: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="10" cy="12" r="2"/><path d="m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"/>'
+  };
+  for (var k2 in IC2) IC[k2] = IC2[k2];
+  var TOOL_IC = {
+    w_email: "mail", w_essay: "essay", w_story: "story", w_poem: "feather", w_shayari: "heart", w_blog: "rss", w_article: "news",
+    w_social: "share", w_insta: "camera", w_yts: "play", w_resume: "user", w_cover: "brief", w_prod: "pack", w_grammar: "spell",
+    w_sum: "align", w_rewrite: "refresh", w_ideas: "bulb", w_msg: "chat",
+    c_gen: "term", c_bug: "bug", c_exp: "code", c_sql: "db", c_html: "globe", c_css: "palette", c_js: "braces", c_py: "cpu",
+    c_kt: "cpu", c_rx: "hash", c_conv: "swap", c_err: "alert",
+    s_math: "sigma", s_quiz: "help", s_mcq: "checks", s_exam: "cap", s_plan: "cal", s_notes: "note", s_qa: "chat", s_trans: "lang",
+    s_vocab: "book", s_gram: "spell", s_flash: "layers", s_topic: "bulb", s_hw: "clip",
+    v_script: "film", v_title: "type", v_desc: "align", v_cap: "caption",
+    d_calc: "calc", d_unit: "ruler", d_age: "cake", d_date: "cal", d_pass: "lock", d_count: "hash", d_case: "type", d_clean: "wand",
+    d_json: "braces", d_notes: "note", d_todo: "checks", d_stop: "sw", d_timer: "clock", d_cal: "cal", d_color: "palette",
+    p_edit: "sliders", p_color: "palette", f_pdf: "fileimg", f_view: "file", f_pdfview: "file", vd_info: "video",
+    vo_tts: "speaker", vo_stt: "mic"
+  };
   function icon(name, size, fill) {
     var s = size || 22;
     var sp = h("span", "st-ico");
@@ -141,11 +203,17 @@
     var go = h("button", "btn btn-primary btn-block", "Generate");
     var res = h("div", "card st-res"); res.hidden = true;
     var prov = h("div", "st-prov");
-    var bar = h("div", "st-bar");
-    var bCopy = h("button", "btn", "Copy");
-    var bSpeak = h("button", "btn", "Suno");
-    var bAgain = h("button", "btn", "Dobara");
-    bar.append(bCopy, bSpeak, bAgain);
+    var bar = h("div", "msg-actions st-actions");
+    function ib(name, label) {
+      if (typeof iconBtn === "function") return iconBtn(name, label);
+      var b = h("button", "btn", label); b.type = "button"; return b;
+    }
+    var bCopy = ib("copy", "Copy"), bSpeak = ib("speak", "Sunao"), bShare = ib("share", "Share"), bAgain = ib("redo", "Dobara");
+    bar.append(bCopy);
+    if ("speechSynthesis" in window) bar.append(bSpeak);
+    if (navigator.share) bar.append(bShare);
+    bar.append(bAgain);
+    function plain(t) { return String(t).replace(/\*\*|__|`/g, "").replace(/^#{1,6}\s*/gm, ""); }
     var out = h("div", "st-out");
     res.append(out, prov, bar);
     var last = "";
@@ -188,15 +256,12 @@
     }
     go.onclick = run;
     bAgain.onclick = run;
-    bCopy.onclick = function () { if (last) copyText(last); else say("Abhi kuch copy karne ko nahi hai"); };
+    bCopy.onclick = function () { if (last) copyText(plain(last)); else say("Abhi kuch copy karne ko nahi hai"); };
     bSpeak.onclick = function () {
-      if (!("speechSynthesis" in window)) { say("Is browser mein awaaz nahi hai"); return; }
-      if (speechSynthesis.speaking) { speechSynthesis.cancel(); return; }
       if (!last) { say("Pehle jawab banwao"); return; }
-      var u = new SpeechSynthesisUtterance(last.replace(/[*#`_>-]/g, " ").slice(0, 3000));
-      u.lang = /[\u0900-\u097F]/.test(last) ? "hi-IN" : "en-IN";
-      speechSynthesis.speak(u);
+      if (typeof speakText === "function") speakText(last, bSpeak);
     };
+    bShare.onclick = function () { if (last && navigator.share) navigator.share({ text: plain(last) }).catch(function () {}); };
     root.append(ta, lang, go, res);
   }
 
@@ -815,7 +880,7 @@
 
   function card(t) {
     var b = h("button", "tool st-card"); b.type = "button";
-    var ic = icon(t.ic, 24); ic.classList.add("st-ico-box");
+    var ic = icon(TOOL_IC[t.id] || t.ic, 24); ic.classList.add("st-ico-box");
     b.append(ic, h("b", "", t.name), h("small", "", t.desc));
     b.onclick = function () { open(t); };
     return b;
@@ -883,7 +948,8 @@
   /* ---------- screen, nav, style jodna ---------- */
   var CSS = [
     ".st-ico{display:inline-grid;place-items:center;vertical-align:middle}",
-    ".st-card .st-ico-box{display:grid;margin-bottom:8px;color:var(--cyan)}",
+    ".st-card .st-ico-box{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;margin-bottom:10px;color:#fff;background:linear-gradient(135deg,#7055E8,#397BFF)}",
+    ".st-card b{display:block;font-size:15px;line-height:1.25}",
     ".st-chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:none}",
     ".st-chip{flex-shrink:0;border:1px solid var(--border);background:var(--card);color:var(--text);padding:8px 14px;border-radius:999px;font-size:14px;font-family:inherit;cursor:pointer}",
     ".st-chip.on{background:var(--grad);color:#fff;border:0}",
@@ -892,7 +958,8 @@
     ".st-field{display:flex;flex-direction:column;gap:6px}.st-lab{font-size:13px;color:var(--muted)}",
     ".st-prov{font-size:12px;color:var(--muted)}",
     ".st-big{font-size:18px;line-height:1.5}",
-    ".st-bar{display:flex;gap:8px;margin-top:10px}.st-bar .btn{flex:1;padding:10px;min-height:44px;font-size:14px}",
+    ".st-actions{margin-top:10px}",
+    "#screen-studio [hidden]{display:none!important}",
     ".st-keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.st-keys .btn{padding:12px 4px;font-size:18px}",
     ".st-check{display:flex;align-items:center;gap:6px;font-size:15px}",
     ".st-canvas{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--border)}",
