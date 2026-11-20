@@ -15,6 +15,13 @@
     "Zyada AI use",
     "Saare free tools bhi saath mein"
   ];
+  var PTOOLS = [
+    ["logo", "Logo Maker"], ["poster", "Poster Maker"], ["vcard", "Visiting Card Maker"], ["collage", "Photo Collage Maker"],
+    ["watermark", "Watermark Studio"], ["invoice", "Invoice Maker"], ["resume", "Resume Pro"], ["pdfmaster", "PDF Master"],
+    ["scanner", "Document Scanner"], ["quote", "Quotation Maker"], ["compress", "Image Compressor"], ["qrpro", "QR Designer Pro"],
+    ["planner", "Social Media Planner"], ["hinditype", "Hindi Typing Pro"], ["password", "Password Manager Tools"],
+    ["website", "Mini Website Maker"], ["invite", "Invitation Maker"], ["textfmt", "Text Formatter Pro"], ["notespro", "Smart Notes Pro"]
+  ];
   var ICONS = {
     crown: '<path d="M12 6l4 6l5-4l-2 10h-14l-2-10l5 4z"/>',
     check: '<path d="M5 12l5 5l10-10"/>',
@@ -58,6 +65,11 @@
     "#premPage .pmsg{min-height:20px;margin:8px 0 0;text-align:center;font-size:13px;color:var(--cyan)}" +
     "#premPage .plater{display:block;width:100%;margin-top:6px;border:0;background:none;color:var(--muted);font-size:14px;padding:12px;cursor:pointer;font-family:inherit}" +
     ".premsec{margin:2px 2px 10px;font-size:18px;font-weight:700;color:var(--text)}" +
+    ".premsub{margin:6px 2px 4px;font-size:15px;font-weight:600;color:var(--text)}" +
+    ".premhint{margin:0 2px 10px;font-size:12px;color:var(--muted)}" +
+    ".ptool{position:relative}" +
+    ".ptool .plk{position:absolute;top:12px;right:12px;color:var(--muted);display:grid;place-items:center}" +
+    ".ptool .pico{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;margin-bottom:10px;color:#fff;background:linear-gradient(135deg,#7055E8,#397BFF)}" +
     ".premcard{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-family:inherit;margin-bottom:14px}" +
     ".premcard .pci{width:46px;height:46px;border-radius:14px;background:var(--grad);color:#fff;display:grid;place-items:center;flex-shrink:0}" +
     ".premcard .pct{flex:1;min-width:0}" +
@@ -143,8 +155,26 @@
     b.onclick = openPage;
     var head = mk("div", "premsec", "Premium Section");
     head.id = "premSecHead";
-    body.insertBefore(b, body.firstChild);
-    body.insertBefore(head, body.firstChild);
+    var sub = mk("div", "premsub", "Premium tools");
+    var hint = mk("p", "premhint", "Ye tools abhi bante ja rahe hain. Jaise-jaise taiyaar honge, yahin khulenge.");
+    var grid = mk("div", "grid");
+    var IC = window.ToxicIcons;
+    PTOOLS.forEach(function (pt) {
+      var c = mk("button", "tool ptool");
+      c.type = "button";
+      var ib = mk("span", "pico");
+      ib.innerHTML = IC ? IC.svg(pt[0], 24) : "";
+      var lk = mk("span", "plk");
+      lk.innerHTML = IC ? IC.svg("lock", 16) : "";
+      c.append(ib, lk, mk("b", "", pt[1]), mk("small", "", "Jald aayega"));
+      c.onclick = openPage;
+      grid.append(c);
+    });
+    var aiHead = mk("div", "premsub", "AI Tools");
+    aiHead.style.marginTop = "18px";
+    var frag = document.createDocumentFragment();
+    frag.append(head, b, sub, hint, grid, aiHead);
+    body.insertBefore(frag, body.firstChild);
   }
 
   document.body.appendChild(page);
