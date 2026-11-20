@@ -181,6 +181,10 @@
     body.append(note);
   }
 
+  function openPage(url) {
+    try { window.open(url, "_blank", "noopener"); } catch (e) { location.href = url; }
+  }
+
   function renderAbout() {
     var a = mk("div", "sabout");
     var logo = mk("img"); logo.src = "icon.png"; logo.alt = "TOXIC AI logo";
@@ -191,6 +195,11 @@
     r.append(mk("span", "st", "Banane wala"), mk("span", "sv", "\u0930\u0942\u092a\u0928\u093e\u0925"));
     g.append(r);
     body.append(g);
+    var g2 = mk("div", "sgrp");
+    g2.append(row("shield", "Privacy Policy", "", function () { openPage("privacy.html"); }));
+    g2.append(row("info", "About Us", "", function () { openPage("about.html"); }));
+    g2.append(row("mail", "Contact", "", function () { openPage("contact.html"); }));
+    body.append(g2);
   }
 
   function go(v) {
@@ -224,4 +233,3 @@
 
   go("list");
 })();
-                                                               
