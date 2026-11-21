@@ -88,7 +88,7 @@
     ".premcard .pct span{display:block;font-size:12px;color:var(--muted)}" +
     ".premcard .pcc{color:var(--muted);display:grid;place-items:center}" +
     ".premcard .ppro{background:#29D9E8;color:#10111B;font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;flex-shrink:0}" +
-    "#premWrap{background:#10111B;border:1px solid #7055E8;border-radius:16px;padding:12px}" +
+    "#premWrap{background:#10111B;border:solid #7055E8;border-width:1px 0;border-radius:0;margin:-8px -16px -24px;padding:16px 16px 24px}" +
     "#premWrap .premcard{background:#1A1B2E;border:1px solid #7055E8;color:#F7F7FC;margin-bottom:12px}" +
     "#premWrap .premcard .pct span{color:#C7B8FF}" +
     "#premWrap .premcard .pcc{color:#29D9E8}" +
