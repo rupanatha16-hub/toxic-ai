@@ -5,6 +5,8 @@
    Koi secret nahi. */
 (function () {
   var SEEN = "toxic.prem.seen";
+  /* TEST_OPEN = true: abhi payment nahi hai, isliye taiyaar tools sabke liye khule hain (jaanch ke liye). Payment aane par false karenge. */
+  var TEST_OPEN = true;
   var PLANS = [
     { id: "w7", name: "7 din", price: "\u20B929", per: "7 din ke liye" },
     { id: "m1", name: "1 mahina", price: "\u20B999", per: "30 din ke liye", tag: "Zyada bachat" }
@@ -156,18 +158,26 @@
     var head = mk("div", "premsec", "Premium Section");
     head.id = "premSecHead";
     var sub = mk("div", "premsub", "Premium tools");
-    var hint = mk("p", "premhint", "Ye tools abhi bante ja rahe hain. Jaise-jaise taiyaar honge, yahin khulenge.");
+    var hint = mk("p", "premhint", "Abhi testing chal rahi hai: jo tool taiyaar hai wo seedha khulta hai. Baaki jald aayenge.");
     var grid = mk("div", "grid");
     var IC = window.ToxicIcons;
     PTOOLS.forEach(function (pt) {
+      var ready = !!(window.ToxicStudio && window.ToxicStudio.has(pt[0]));
       var c = mk("button", "tool ptool");
       c.type = "button";
       var ib = mk("span", "pico");
       ib.innerHTML = IC ? IC.svg(pt[0], 24) : "";
-      var lk = mk("span", "plk");
-      lk.innerHTML = IC ? IC.svg("lock", 16) : "";
-      c.append(ib, lk, mk("b", "", pt[1]), mk("small", "", "Jald aayega"));
-      c.onclick = openPage;
+      c.append(ib);
+      if (!ready) {
+        var lk = mk("span", "plk");
+        lk.innerHTML = IC ? IC.svg("lock", 16) : "";
+        c.append(lk);
+      }
+      c.append(mk("b", "", pt[1]), mk("small", "", ready ? "Kholo" : "Jald aayega"));
+      c.onclick = function () {
+        if (ready && (TEST_OPEN || (window.ToxicPremium && window.ToxicPremium.isPremium()))) window.ToxicStudio.open(pt[0], "tools");
+        else openPage();
+      };
       grid.append(c);
     });
     var aiHead = mk("div", "premsub", "AI Tools");
