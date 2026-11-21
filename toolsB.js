@@ -230,3 +230,129 @@
       y = cardTop + tot + 30;
     }
     if (String(st.host || "").trim()) { var ho = fit(x, st.host.trim(), function (s) { return font(s, 600); }, bw, 170, 38, 22, 1.35); y += lines(x, ho, W / 2, y, "center", T.c === "#ffffff" ? "#fff" : T.c) + 14; }
+    return y;
+    }
+    var scratch = L.canvas(W, H), endY = flow(scratch.getContext("2d")), off = Math.max(0, Math.min(150, (H - 260 - endY) / 2));
+    x.save(); x.translate(0, off); flow(x); x.restore();
+    if (String(st.rsvp || "").trim()) { divider(H - 190, x); var rs = fit(x, st.rsvp.trim(), function (s) { return font(s, 600); }, bw, 90, 34, 20, 1.3); lines(x, rs, W / 2, H - 160, "center", T.c === "#ffffff" ? "#ddd" : "#555"); }
+    x.textBaseline = "alphabetic";
+  }
+  S.register({ id: "invite", name: "Invitation Maker", run: function (root) {
+    var st = { occ: "wedding", top: THEMES.wedding.top, head: THEMES.wedding.head, names: THEMES.wedding.names, msg: THEMES.wedding.msg, date: "", time: "", venue: "", host: "", rsvp: "" };
+    var save = L.persist("toxic.pv.invite", st, ["occ", "top", "head", "names", "msg", "time", "venue", "host", "rsvp"]);
+    var spec = [
+      { t: "sec", l: "Kis mauke ka card?" },
+      { k: "occ", l: "Mauka", t: "select", opts: Object.keys(THEMES).map(function (k) { return [k, THEMES[k].n]; }) },
+      { t: "sec", l: "Card ka likha hua (badal sakte ho)" },
+      { k: "top", l: "Sabse upar ki line", max: 60 }, { k: "head", l: "Bada heading", max: 60 }, { k: "names", l: "Naam", max: 60 }, { k: "msg", l: "Nimantran ki line", t: "textarea", rows: 2, max: 140 },
+      { k: "date", l: "Tareekh", t: "date" }, { k: "time", l: "Samay", ph: "Jaise: shaam 7 baje", max: 40 }, { k: "venue", l: "Jagah", t: "textarea", rows: 2, max: 140 },
+      { k: "host", l: "Nimantran dene wale", t: "textarea", rows: 2, ph: "Jaise: Darshanabhilashi: Sharma parivar", max: 140 },
+      { k: "rsvp", l: "Sampark", ph: "Jaise: Phone: 98XXXXXXXX", max: 80 }
+    ];
+    var pt = previewTool(root, st, spec, drawInvite, save, "invitation", st.head || "Nimantran");
+    var sel = pt.refs.occ.node, prev = sel.onchange;
+    sel.onchange = function () {
+      var T = THEMES[sel.value]; st.occ = sel.value; st.top = T.top; st.head = T.head; st.names = T.names; st.msg = T.msg;
+      ["top", "head", "names", "msg"].forEach(function (k) { pt.refs[k].refresh(); }); save(); pt.redraw();
+    };
+    root.append(h("div", "pv-note", "Mauka badalne par upar ke likhe hue shabd us mauke ke hisaab se bhar jaate hain; aap unhe badal sakte ho. Hindi aur English dono likh sakte ho."));
+  } });
+
+  /* ================= PHOTO COLLAGE ================= */
+  var LAYOUTS = {
+    2: [["Do upar-neeche", [[0, 0, 1, .5], [0, .5, 1, .5]]], ["Do side-by-side", [[0, 0, .5, 1], [.5, 0, .5, 1]]]],
+    3: [["Ek bada + do", [[0, 0, .6, 1], [.6, 0, .4, .5], [.6, .5, .4, .5]]], ["Upar bada + do neeche", [[0, 0, 1, .55], [0, .55, .5, .45], [.5, .55, .5, .45]]], ["Teen patti", [[0, 0, 1, 1 / 3], [0, 1 / 3, 1, 1 / 3], [0, 2 / 3, 1, 1 / 3]]]],
+    4: [["2 x 2", [[0, 0, .5, .5], [.5, 0, .5, .5], [0, .5, .5, .5], [.5, .5, .5, .5]]], ["Ek bada + teen", [[0, 0, 1, .6], [0, .6, 1 / 3, .4], [1 / 3, .6, 1 / 3, .4], [2 / 3, .6, 1 / 3, .4]]]],
+    5: [["Do upar + teen neeche", [[0, 0, .5, .5], [.5, 0, .5, .5], [0, .5, 1 / 3, .5], [1 / 3, .5, 1 / 3, .5], [2 / 3, .5, 1 / 3, .5]]], ["Ek bada + chaar", [[0, 0, .5, 1], [.5, 0, .25, .5], [.75, 0, .25, .5], [.5, .5, .25, .5], [.75, .5, .25, .5]]]],
+    6: [["3 x 2", [[0, 0, 1 / 3, .5], [1 / 3, 0, 1 / 3, .5], [2 / 3, 0, 1 / 3, .5], [0, .5, 1 / 3, .5], [1 / 3, .5, 1 / 3, .5], [2 / 3, .5, 1 / 3, .5]]], ["2 x 3", [[0, 0, .5, 1 / 3], [.5, 0, .5, 1 / 3], [0, 1 / 3, .5, 1 / 3], [.5, 1 / 3, .5, 1 / 3], [0, 2 / 3, .5, 1 / 3], [.5, 2 / 3, .5, 1 / 3]]]]
+  };
+  var CSIZES = { sq: [1080, 1080, "Square (1:1)"], p45: [1080, 1350, "Post (4:5)"], st: [1080, 1920, "Story (9:16)"], l: [1600, 1000, "Chauda (16:10)"] };
+  S.register({ id: "collage", name: "Photo Collage Maker", run: function (root) {
+    var st = { size: "sq", gap: 12, rad: 18, bg: "#ffffff", lay: 0 }, imgs = [];
+    var cv = h("canvas", "pv-prev"), info = h("div", "st-prov", "Photos chuno (2 se 6 tak)"), layBox = h("div", "pv-chips");
+    cv.width = 400; cv.height = 400;
+    function draw() {
+      var sz = CSIZES[st.size], W = sz[0], H = sz[1]; cv.width = W; cv.height = H; var x = cv.getContext("2d");
+      x.fillStyle = st.bg; x.fillRect(0, 0, W, H);
+      var n = imgs.length; if (n < 2) { x.fillStyle = "#999"; x.font = font(W * 0.04, 500); x.textAlign = "center"; x.fillText("Pehle 2 ya zyada photo chuno", W / 2, H / 2); return; }
+      var opts = LAYOUTS[n], lay = opts[Math.min(st.lay, opts.length - 1)][1], g = +st.gap, p = g;
+      lay.forEach(function (c, i) {
+        var cx = p + c[0] * (W - 2 * p) + (c[0] > 0 ? g / 2 : 0), cy = p + c[1] * (H - 2 * p) + (c[1] > 0 ? g / 2 : 0);
+        var cw = c[2] * (W - 2 * p) - (c[0] > 0 ? g / 2 : 0) - (c[0] + c[2] < 0.999 ? g / 2 : 0), ch = c[3] * (H - 2 * p) - (c[1] > 0 ? g / 2 : 0) - (c[1] + c[3] < 0.999 ? g / 2 : 0);
+        x.save(); L.rrect(x, cx, cy, cw, ch, +st.rad); x.clip(); L.drawCover(x, imgs[i], cx, cy, cw, ch); x.restore();
+      });
+    }
+    function drawLayChips() {
+      layBox.textContent = ""; var n = imgs.length; if (n < 2) return;
+      LAYOUTS[n].forEach(function (o, i) { var b = h("button", "pv-chip" + (i === st.lay ? " on" : ""), o[0]); b.type = "button"; b.onclick = function () { st.lay = i; drawLayChips(); draw(); }; layBox.append(b); });
+    }
+    root.append(S.btn("Photos chuno (2 se 6)", "btn-primary btn-block", function () {
+      S.pickImage(function (files) {
+        info.textContent = "Photos khul rahi hain...";
+        Promise.all(files.slice(0, 6).map(function (f) { return L.fileToCanvas(f, 1400); })).then(function (arr) {
+          imgs = arr; st.lay = 0; info.textContent = arr.length + " photo chuni gayi" + (files.length > 6 ? " (pehli 6 li gayi)" : "") + (arr.length < 2 ? ". Kam se kam 2 chuno." : ""); drawLayChips(); draw();
+        }, function (e) { S.say(e.message); });
+      }, { multiple: true });
+    }), info, layBox);
+    var spec = [
+      { k: "size", l: "Size", t: "select", opts: Object.keys(CSIZES).map(function (k) { return [k, CSIZES[k][2]]; }) },
+      { k: "gap", l: "Photo ke beech ki jagah", t: "select", opts: [["0", "Koi nahi"], ["6", "Chhoti"], ["12", "Normal"], ["24", "Badi"]], def: "12" },
+      { k: "rad", l: "Kone", t: "select", opts: [["0", "Seedhe"], ["18", "Halke gol"], ["40", "Bahut gol"]], def: "18" },
+      { k: "bg", l: "Piche ka rang", t: "color" }
+    ];
+    L.form(root, spec, st, function () { draw(); });
+    root.append(h("div", "pv-sec", "Preview"), cv);
+    L.imageBar(root, function () { if (imgs.length < 2) { S.say("Pehle 2 ya zyada photo chuno"); return null; } draw(); return cv; }, "collage", "Mera collage");
+    draw();
+  } });
+
+  /* ================= WATERMARK STUDIO ================= */
+  S.register({ id: "watermark", name: "Watermark Studio", run: function (root) {
+    var st = { mode: "text", text: "", pos: "br", size: 6, op: 55, rot: 0, col: "#ffffff", shadow: "yes", tile: "no", logo: null }, base = null;
+    var cv = h("canvas", "pv-prev"), info = h("div", "st-prov", "Pehle photo chuno"); cv.width = 400; cv.height = 300;
+    function draw() {
+      if (!base) { cv.width = 400; cv.height = 240; var z = cv.getContext("2d"); z.fillStyle = "#eee"; z.fillRect(0, 0, 400, 240); z.fillStyle = "#888"; z.font = "18px sans-serif"; z.textAlign = "center"; z.fillText("Photo chuno", 200, 125); return; }
+      var W = base.width, H = base.height; cv.width = W; cv.height = H; var x = cv.getContext("2d"); x.drawImage(base, 0, 0);
+      var unit = Math.min(W, H) * (st.size / 100), a = st.op / 100;
+      var item = null, iw = 0, ih = 0;
+      if (st.mode === "logo" && st.logo) { iw = unit * 3.2; ih = iw * st.logo.height / st.logo.width; item = function (c) { c.drawImage(st.logo, -iw / 2, -ih / 2, iw, ih); }; }
+      else if (st.mode === "text" && String(st.text).trim()) { x.font = font(unit, 800); iw = x.measureText(st.text).width; ih = unit; item = function (c) { c.font = font(unit, 800); c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(st.text, 0, 0); }; }
+      if (!item) return;
+      function put(px, py, rot) {
+        x.save(); x.globalAlpha = a; x.translate(px, py); x.rotate(rot * Math.PI / 180); x.fillStyle = st.col;
+        if (st.shadow === "yes") { x.shadowColor = "rgba(0,0,0,.55)"; x.shadowBlur = unit * 0.15; x.shadowOffsetY = unit * 0.04; }
+        item(x); x.restore();
+      }
+      if (st.tile === "yes") {
+        var sx = iw * 1.5, sy = ih * 3.2;
+        for (var yy = -H; yy < H * 2; yy += sy) for (var xx = -W; xx < W * 2; xx += sx) {
+          var ox = ((yy / sy) % 2 ? sx / 2 : 0); var rx = xx + ox, ry = yy; x.save(); x.translate(W / 2, H / 2); x.rotate(-30 * Math.PI / 180); x.translate(-W / 2, -H / 2);
+          x.globalAlpha = a; x.translate(rx, ry); x.fillStyle = st.col; if (st.shadow === "yes") { x.shadowColor = "rgba(0,0,0,.45)"; x.shadowBlur = unit * 0.12; } item(x); x.restore();
+        }
+      } else {
+        var mg = Math.max(iw, ih) * 0.12 + Math.min(W, H) * 0.02, px = W / 2, py = H / 2;
+        if (st.pos.indexOf("l") > -1) px = mg + iw / 2; if (st.pos.indexOf("r") > -1) px = W - mg - iw / 2;
+        if (st.pos.indexOf("t") > -1) py = mg + ih / 2; if (st.pos.indexOf("b") > -1) py = H - mg - ih / 2;
+        put(px, py, +st.rot);
+      }
+    }
+    root.append(S.btn("Photo chuno", "btn-primary btn-block", function () {
+      S.pickImage(function (f) { L.fileToCanvas(f[0], 2400).then(function (c) { base = c; info.textContent = c.width + " x " + c.height + " px"; draw(); }, function (e) { S.say(e.message); }); });
+    }), info);
+    var spec = [
+      { t: "sec", l: "Watermark" },
+      { k: "mode", l: "Kya lagana hai", t: "select", opts: [["text", "Naam / text"], ["logo", "Logo (photo)"]] },
+      { k: "text", l: "Text", ph: "Jaise: © Sharma Photo Studio", max: 40 },
+      { k: "logo", l: "Logo", t: "image", max: 800, hint: "Logo chuno (PNG transparent behtar)" },
+      { k: "pos", l: "Kahan", t: "select", opts: [["tl", "Upar left"], ["t", "Upar beech"], ["tr", "Upar right"], ["l", "Beech left"], ["c", "Bilkul beech"], ["r", "Beech right"], ["bl", "Neeche left"], ["b", "Neeche beech"], ["br", "Neeche right"]], def: "br" },
+      { k: "tile", l: "Poori photo par dohrao", t: "select", opts: [["no", "Nahi"], ["yes", "Haan (tirchha pattern)"]] },
+      { k: "size", l: "Size (1 se 20)", t: "number", def: 6 }, { k: "op", l: "Dhundhlapan (10 se 100)", t: "number", def: 55 }, { k: "rot", l: "Ghumao (digri)", t: "number", def: 0 },
+      { k: "col", l: "Rang", t: "color" }, { k: "shadow", l: "Parchhai", t: "select", opts: [["yes", "Haan"], ["no", "Nahi"]] }
+    ];
+    L.form(root, spec, st, function () { st.size = Math.min(20, Math.max(1, +st.size || 6)); st.op = Math.min(100, Math.max(10, +st.op || 55)); draw(); });
+    root.append(h("div", "pv-sec", "Preview"), cv);
+    L.imageBar(root, function () { if (!base) { S.say("Pehle photo chuno"); return null; } draw(); return cv; }, "watermark-photo", "Photo");
+    root.append(h("div", "pv-note", "Photo aapke phone ke bahar kahin nahi jaati. Ek baar mein ek photo; doosri ke liye \"Photo chuno\" phir dabao. Watermark photo ki chori rokne mein madad karta hai, par poori suraksha nahi deta."));
+    draw();
+  } });
+})();
