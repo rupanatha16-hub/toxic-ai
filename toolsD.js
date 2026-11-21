@@ -405,7 +405,6 @@
     push(x + "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xr + "\n%%EOF");
     return new Blob(parts, { type: "application/pdf" });
   }
-  var PRINT_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>';
 
   S.register({ id: "passport", name: "Passport Photo Maker", run: function (root) {
     var st = { size: "35x45", copies: "8", page: "4x6" };
@@ -498,29 +497,10 @@
         }, "image/jpeg", 0.95);
       });
     }
-    function printPage() {
-      var r = buildPage(300);
-      r.cv.toBlob(function (b) {
-        if (!b) { S.say("Photo ban nahi payi"); return; }
-        var u = URL.createObjectURL(b), fr = document.createElement("iframe");
-        fr.style.cssText = "position:fixed;left:-9999px;top:0;width:10px;height:10px;border:0";
-        fr.srcdoc = "<!doctype html><style>@page{size:" + r.L.W + "mm " + r.L.H + "mm;margin:0}html,body{margin:0;padding:0}img{display:block;width:" + r.L.W + "mm;height:" + r.L.H + "mm}</style><img src=\"" + u + "\">";
-        fr.onload = function () {
-          var im = fr.contentDocument && fr.contentDocument.querySelector("img");
-          var go = function () { try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { S.say("Print khidki nahi khuli. PDF download karke wahan se print karo"); } };
-          if (im && !im.complete) im.onload = go; else go();
-        };
-        document.body.appendChild(fr);
-        setTimeout(function () { try { document.body.removeChild(fr); } catch (e) {} URL.revokeObjectURL(u); }, 120000);
-      }, "image/jpeg", 0.95);
-    }
-    var pb = S.btn("Print", "", function () { if (need()) printPage(); });
-    if (!pb.querySelector("svg")) { var sp = document.createElement("span"); sp.innerHTML = PRINT_SVG; sp.style.cssText = "display:inline-flex;margin-right:6px;vertical-align:middle"; pb.insertBefore(sp, pb.firstChild); }
     root.append(S.row(
       S.btn("PDF download", "btn-primary", function () { if (!need()) return; makePdf().then(function (b) { S.saveBlob(b, "passport-photos-" + L.todayISO() + ".pdf"); S.say("PDF save hui"); }, function (e) { S.say(e.message || "PDF nahi bani"); }); }),
-      S.btn("Share", "", function () { if (!need()) return; makePdf().then(function (b) { S.shareFile(b, "passport-photos.pdf", "Passport photos"); }, function (e) { S.say(e.message || "PDF nahi bani"); }); }),
-      pb));
-    root.append(note("Print ke liye printer chahiye. Background badalna aur chehra apne aap pehchanna isme nahi hai."));
+      S.btn("Share", "", function () { if (!need()) return; makePdf().then(function (b) { S.shareFile(b, "passport-photos.pdf", "Passport photos"); }, function (e) { S.say(e.message || "PDF nahi bani"); }); })));
+    root.append(note("Print ke liye PDF kholo aur 100% / Actual size chuno. Background badalna aur chehra apne aap pehchanna isme nahi hai."));
     refresh();
   } });
 })();
