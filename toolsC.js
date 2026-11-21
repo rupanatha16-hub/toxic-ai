@@ -1,5 +1,5 @@
 "use strict";
-/* TOXIC AI - Premium tools C: PDF Master, Document Scanner, Image Compressor, QR Designer Pro.
+/* TOXIC AI - Premium tools C: PDF Master, Document Scanner (4 kone se seedha karna), Image Compressor, QR Designer Pro.
    Sab kuch phone ke browser mein banta hai. Koi secret nahi, koi file bahar nahi jati.
    PDF Master ko alag file "pdf-lib.min.js" chahiye (isi folder mein). */
 (function () {
@@ -35,6 +35,57 @@
     var q = ((deg % 360) + 360) % 360, sw = q === 90 || q === 270, t = L.canvas(sw ? c.height : c.width, sw ? c.width : c.height), x = t.getContext("2d");
     x.translate(t.width / 2, t.height / 2); x.rotate(q * Math.PI / 180); x.drawImage(c, -c.width / 2, -c.height / 2);
     return t;
+  }
+
+  /* ---------- TEDHI PHOTO SEEDHI KARNA (4 kone) ---------- */
+  function solve8(A, b) {
+    var n = 8, i, j, k, m, t, f;
+    for (i = 0; i < n; i++) {
+      m = i; for (j = i + 1; j < n; j++) if (Math.abs(A[j][i]) > Math.abs(A[m][i])) m = j;
+      if (Math.abs(A[m][i]) < 1e-9) throw new Error("kone theek nahi");
+      t = A[i]; A[i] = A[m]; A[m] = t; t = b[i]; b[i] = b[m]; b[m] = t;
+      for (j = i + 1; j < n; j++) { f = A[j][i] / A[i][i]; for (k = i; k < n; k++) A[j][k] -= f * A[i][k]; b[j] -= f * b[i]; }
+    }
+    var x = new Array(n);
+    for (i = n - 1; i >= 0; i--) { t = b[i]; for (j = i + 1; j < n; j++) t -= A[i][j] * x[j]; x[i] = t / A[i][i]; }
+    return x;
+  }
+  function homog(s, d) {
+    var A = [], b = [], i;
+    for (i = 0; i < 4; i++) {
+      A.push([s[i][0], s[i][1], 1, 0, 0, 0, -d[i][0] * s[i][0], -d[i][0] * s[i][1]]); b.push(d[i][0]);
+      A.push([0, 0, 0, s[i][0], s[i][1], 1, -d[i][1] * s[i][0], -d[i][1] * s[i][1]]); b.push(d[i][1]);
+    }
+    return solve8(A, b);
+  }
+  function quadOk(p, area) {
+    var i, sign = 0, a, b, c, cr, sg, ar = 0;
+    for (i = 0; i < 4; i++) {
+      a = p[i]; b = p[(i + 1) % 4]; c = p[(i + 2) % 4];
+      cr = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+      if (Math.abs(cr) < 1e-6) return false;
+      sg = cr > 0 ? 1 : -1; if (!sign) sign = sg; else if (sg !== sign) return false;
+      ar += a[0] * b[1] - b[0] * a[1];
+    }
+    return Math.abs(ar) / 2 >= area * 0.02;
+  }
+  function warpQuad(src, q, maxSide) {
+    var dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+    var w = Math.round((dist(q[0], q[1]) + dist(q[3], q[2])) / 2), hh = Math.round((dist(q[0], q[3]) + dist(q[1], q[2])) / 2);
+    var m = Math.max(w, hh); if (m > maxSide) { var k = maxSide / m; w = Math.round(w * k); hh = Math.round(hh * k); }
+    w = Math.max(20, w); hh = Math.max(20, hh);
+    var H = homog([[0, 0], [w, 0], [w, hh], [0, hh]], q);
+    var sw = src.width, sh = src.height, sd = src.getContext("2d").getImageData(0, 0, sw, sh).data;
+    var out = L.canvas(w, hh), ox = out.getContext("2d"), im = ox.createImageData(w, hh), od = im.data, x, y, den, px, py, x0, y0, fx, fy, i0, i1, i2, i3, o, c;
+    for (y = 0; y < hh; y++) for (x = 0; x < w; x++) {
+      den = H[6] * x + H[7] * y + 1; px = (H[0] * x + H[1] * y + H[2]) / den; py = (H[3] * x + H[4] * y + H[5]) / den;
+      px = Math.max(0, Math.min(sw - 1.001, px)); py = Math.max(0, Math.min(sh - 1.001, py));
+      x0 = px | 0; y0 = py | 0; fx = px - x0; fy = py - y0; i0 = (y0 * sw + x0) * 4; i1 = i0 + 4; i2 = i0 + sw * 4; i3 = i2 + 4; o = (y * w + x) * 4;
+      for (c = 0; c < 3; c++) od[o + c] = sd[i0 + c] * (1 - fx) * (1 - fy) + sd[i1 + c] * fx * (1 - fy) + sd[i2 + c] * (1 - fx) * fy + sd[i3 + c] * fx * fy;
+      od[o + 3] = 255;
+    }
+    ox.putImageData(im, 0, 0);
+    return out;
   }
 
   /* ================= IMAGE COMPRESSOR ================= */
@@ -116,7 +167,7 @@
     return { t: Math.max(0, pc(top, hh) - 1), b: Math.max(0, pc(hh - 1 - bot, hh) - 1), l: Math.max(0, pc(lef, w) - 1), r: Math.max(0, pc(w - 1 - rig, w) - 1) };
   }
   S.register({ id: "scanner", name: "Document Scanner", run: function (root) {
-    var st = { filter: "clean", t: 0, b: 0, l: 0, r: 0 }, base = null, result = null, pages = [];
+    var st = { filter: "clean", t: 0, b: 0, l: 0, r: 0 }, base = null, result = null, pages = [], undoBase = null, pts = null, act = -1;
     var info = h("div", "pv-note", "Kagaz ki photo khicho ya gallery se chuno. Roshni achhi rakho aur kagaz seedha rakho.");
     var prev = h("div", "pv-sheet"), cnt = h("div", "st-prov", "");
     var sl = {};
@@ -131,13 +182,64 @@
     var again = L.debounce(render, 300);
     function load(fs) {
       info.textContent = "Photo khul rahi hai...";
-      L.fileToCanvas(fs[0], 1800).then(function (c) { base = c; st.t = st.b = st.l = st.r = 0; syncSliders(); info.textContent = "Photo aa gayi. Neeche filter aur kinare theek karo."; render(); }, function (e) { info.textContent = e.message || "Photo nahi khuli"; });
+      L.fileToCanvas(fs[0], 1800).then(function (c) { base = c; undoBase = null; st.t = st.b = st.l = st.r = 0; syncSliders(); info.textContent = "Photo aa gayi. Tedhi hai to 4 bindu kagaz ke kone par rakho aur Seedha karo dabao. Phir filter aur kinare theek karo."; edShow(); render(); }, function (e) { info.textContent = e.message || "Photo nahi khuli"; });
     }
     root.append(S.row(S.btn("Camera se khicho", "btn-primary", function () { pick("image/*", false, load, "environment"); }), S.btn("Gallery se chuno", "", function () { pick("image/*", false, load); })), info);
+    var edBox = h("div", ""), ed = h("canvas", "");
+    edBox.style.display = "none"; ed.style.cssText = "width:100%;height:auto;display:block;touch-action:none;border-radius:10px;background:#000";
+    edBox.append(h("div", "pv-sec", "Tedhi photo seedhi karo"),
+      h("div", "pv-note", "4 bindu ko kagaz ke 4 kone par khiskao (upar-left, upar-right, neeche-right, neeche-left). Seedhi photo ho to ise chhod do."), ed,
+      S.row(S.btn("Seedha karo", "btn-primary", function () { straighten(); }), S.btn("Wapas pehle jaisi", "", function () { undo(); })));
+    root.append(edBox);
+    function edShow() {
+      if (!base) return;
+      edBox.style.display = "";
+      var k = Math.min(1, 800 / Math.max(base.width, base.height));
+      ed.width = Math.max(10, Math.round(base.width * k)); ed.height = Math.max(10, Math.round(base.height * k));
+      var ix = ed.width * 0.06, iy = ed.height * 0.06;
+      pts = [[ix, iy], [ed.width - ix, iy], [ed.width - ix, ed.height - iy], [ix, ed.height - iy]];
+      edDraw();
+    }
+    function edDraw() {
+      if (!base || !pts) return;
+      var x = ed.getContext("2d"), r = ed.getBoundingClientRect(), k = r.width > 0 ? ed.width / r.width : 1, i;
+      x.drawImage(base, 0, 0, ed.width, ed.height);
+      x.strokeStyle = "#29D9E8"; x.lineWidth = 2 * k; x.beginPath();
+      for (i = 0; i < 4; i++) { if (i) x.lineTo(pts[i][0], pts[i][1]); else x.moveTo(pts[i][0], pts[i][1]); }
+      x.closePath(); x.stroke();
+      for (i = 0; i < 4; i++) { x.beginPath(); x.arc(pts[i][0], pts[i][1], 13 * k, 0, 6.2832); x.fillStyle = "#7055E8"; x.fill(); x.strokeStyle = "#ffffff"; x.lineWidth = 2 * k; x.stroke(); }
+    }
+    function edPos(e) {
+      var r = ed.getBoundingClientRect();
+      return [Math.max(0, Math.min(ed.width, (e.clientX - r.left) * ed.width / r.width)), Math.max(0, Math.min(ed.height, (e.clientY - r.top) * ed.height / r.height))];
+    }
+    ed.addEventListener("pointerdown", function (e) {
+      if (!pts) return;
+      var p = edPos(e), r = ed.getBoundingClientRect(), k = r.width > 0 ? ed.width / r.width : 1, best = -1, bd = 1e9, i, d;
+      for (i = 0; i < 4; i++) { d = Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]); if (d < bd) { bd = d; best = i; } }
+      if (bd < 40 * k) { act = best; try { ed.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); }
+    });
+    ed.addEventListener("pointermove", function (e) { if (act < 0) return; pts[act] = edPos(e); edDraw(); e.preventDefault(); });
+    ed.addEventListener("pointerup", function () { act = -1; });
+    ed.addEventListener("pointercancel", function () { act = -1; });
+    function straighten() {
+      if (!base || !pts) { S.say("Pehle photo chuno"); return; }
+      if (!quadOk(pts, ed.width * ed.height)) { S.say("Kone is kram mein rakho: upar-left, upar-right, neeche-right, neeche-left"); return; }
+      var kx = base.width / ed.width, ky = base.height / ed.height;
+      try {
+        var out = warpQuad(base, pts.map(function (p) { return [p[0] * kx, p[1] * ky]; }), 1800);
+        undoBase = base; base = out; st.t = st.b = st.l = st.r = 0; syncSliders(); edShow(); render();
+        info.textContent = "Kagaz seedha ho gaya. Galat lage to Wapas pehle jaisi dabao."; S.say("Kagaz seedha ho gaya");
+      } catch (e) { S.say("Seedha nahi ho paya. Kone dobara rakho"); }
+    }
+    function undo() {
+      if (!undoBase) { S.say("Wapas jaane ke liye kuch nahi hai"); return; }
+      base = undoBase; undoBase = null; st.t = st.b = st.l = st.r = 0; syncSliders(); edShow(); render(); S.say("Pehle jaisi photo wapas aa gayi");
+    }
     var fl = selectField("Filter", [["clean", "Saaf kagaz (safed peeche)"], ["bw", "Kaala-safed"], ["color", "Rangeen saaf"], ["gray", "Grey"], ["orig", "Jaisi hai waisi"]], st.filter, function (v) { st.filter = v; again(); });
     root.append(fl.node);
     root.append(S.row(
-      S.btn("Ghumao", "", function () { if (!base) { S.say("Pehle photo chuno"); return; } base = rotateCanvas(base, 90); st.t = st.b = st.l = st.r = 0; syncSliders(); render(); }),
+      S.btn("Ghumao", "", function () { if (!base) { S.say("Pehle photo chuno"); return; } base = rotateCanvas(base, 90); st.t = st.b = st.l = st.r = 0; syncSliders(); edShow(); render(); }),
       S.btn("Kinare (andaza)", "", function () {
         if (!base) { S.say("Pehle photo chuno"); return; }
         var g = guessEdges(base);
@@ -156,7 +258,7 @@
       S.btn("Saari page hatao", "", function () { pages = []; upd(); })), cnt);
     upd();
     L.exportBar(root, function () { if (pages.length) return pages; if (!result) throw new Error("Pehle photo chuno"); return [result]; }, "scan-" + L.todayISO(), "Scan ki hui file");
-    root.append(h("div", "pv-note", "Ye seedhi photo ko saaf karta hai. Tedhi photo ko seedha nahi karta (kinare ka pata sirf andaza hai). PDF photo jaisi banti hai, text copy nahi hota."));
+    root.append(h("div", "pv-note", "Tedhi photo ho to upar ke 4 bindu kagaz ke kone par rakho aur Seedha karo dabao (kone aap khud rakhte ho, ye apne aap nahi pehchanta). Kinare (andaza) sirf ek andaza hai. PDF photo jaisi banti hai, text copy nahi hota."));
   } });
 
   /* ================= PDF MASTER ================= */
