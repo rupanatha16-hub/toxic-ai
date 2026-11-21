@@ -273,4 +273,105 @@
       S.btn("Peeche (PNG)", "", function () { render(); L.toBlob(back).then(function (b) { S.saveBlob(b, name + "-back.png"); S.say("Photo save hui"); }); })));
     root.append(S.row(
       S.btn("Print PDF (A4, 10 card)", "", function () { try { S.saveBlob(L.pdfFrom(sheetPages()), name + "-print.pdf"); S.say("PDF ban gayi"); } catch (e) { S.say(e.message); } }),
-      S.btn("Share karo", "", function () { try { L.toBlob(front).then(function (b) { S.shareFile(b, name + ".png", (st.nam
+      S.btn("Share karo", "", function () { try { L.toBlob(front).then(function (b) { S.shareFile(b, name + ".png", (st.name || "") + " - " + (st.biz || "")); }); } catch (e) { S.say(e.message); } })));
+    root.append(h("div", "pv-note", "Print PDF mein A4 par 10 card aate hain (pehle page par aage, doosre par peeche). Photo-copy dukaan par print karwa sakte ho. Card ka size lagbhag 9 x 5.1 cm hai."));
+    render();
+  } });
+
+  /* ================= RESUME PRO ================= */
+  function blocks(txt) { return String(txt || "").split(/\n\s*\n/).map(function (b) { return b.split("\n").map(function (l) { return l.trim(); }).filter(Boolean); }).filter(function (b) { return b.length; }); }
+  function buildResume(st) {
+    var br = st.brand || "#7055E8", side = st.tpl === "side", SW = 380, M = 60, W = 1240;
+    var d = new L.Doc({ M: M, onPage: function (dd) { if (side) { dd.x.fillStyle = br; dd.x.fillRect(0, 0, SW, dd.H); } } });
+    var X = side ? SW + 50 : M, MW = W - X - M;
+    function sec(title) {
+      d.ensure(110); d.gap(16);
+      d.text(title.toUpperCase(), { x: X, w: MW, size: 24, weight: 700, color: br });
+      d.x.fillStyle = L.hexA(br, 0.35); d.x.fillRect(X, d.y, MW, 3); d.y += 14;
+    }
+    if (side) {
+      var y = 60, cx = SW / 2;
+      if (st.photo) {
+        d.x.save(); d.x.beginPath(); d.x.arc(cx, y + 110, 110, 0, 7); d.x.clip(); L.drawCover(d.x, st.photo, cx - 110, y, 220, 220); d.x.restore(); y += 250;
+      }
+      y += d.text(st.name || "Aapka Naam", { x: 30, y: y, w: SW - 60, size: 42, weight: 700, color: "#fff", lh: 50 }) + 6;
+      if (st.title) y += d.text(st.title, { x: 30, y: y, w: SW - 60, size: 24, color: "rgba(255,255,255,.9)" }) + 24;
+      function sideBlock(title, arr) {
+        if (!arr.length) return; y += 10;
+        d.text(title.toUpperCase(), { x: 30, y: y, w: SW - 60, size: 20, weight: 700, color: "rgba(255,255,255,.75)" }); y += 34;
+        arr.forEach(function (a) { y += d.text(a, { x: 30, y: y, w: SW - 60, size: 22, color: "#fff", lh: 30 }) + 6; });
+      }
+      var con = []; if (st.phone) con.push(st.phone); if (st.email) con.push(st.email); if (st.addr) con.push(st.addr);
+      sideBlock("Sampark", con);
+      sideBlock("Skills", String(st.skills || "").split(/[,\n]/).map(function (s) { return s.trim(); }).filter(Boolean));
+      sideBlock("Bhashayein", String(st.langs || "").split(/[,\n]/).map(function (s) { return s.trim(); }).filter(Boolean));
+      d.y = M;
+    } else {
+      var tx = M;
+      if (st.photo) { d.x.save(); d.x.beginPath(); d.x.arc(M + 75, M + 75, 75, 0, 7); d.x.clip(); L.drawCover(d.x, st.photo, M, M, 150, 150); d.x.restore(); tx = M + 185; }
+      var yy = M + 6;
+      yy += d.text(st.name || "Aapka Naam", { x: tx, y: yy, w: W - tx - M, size: 54, weight: 700, color: br, lh: 62 });
+      if (st.title) yy += d.text(st.title, { x: tx, y: yy, w: W - tx - M, size: 28, color: "#444" }) + 4;
+      var cl = []; if (st.phone) cl.push(st.phone); if (st.email) cl.push(st.email); if (st.addr) cl.push(st.addr);
+      if (cl.length) yy += d.text(cl.join("   |   "), { x: tx, y: yy, w: W - tx - M, size: 21, color: "#555", lh: 30 });
+      d.y = Math.max(yy, st.photo ? M + 160 : yy) + 12; d.hr(br, 4);
+    }
+    if (String(st.summary || "").trim()) { sec("Parichay"); d.text(st.summary.trim(), { x: X, w: MW, size: 23, lh: 33, color: "#333" }); }
+    function entries(title, txt) {
+      var bl = blocks(txt); if (!bl.length) return; sec(title);
+      bl.forEach(function (b) {
+        d.ensure(90);
+        d.text(b[0], { x: X, w: MW, size: 25, weight: 700, color: "#111" });
+        for (var i = 1; i < b.length; i++) d.text("•  " + b[i].replace(/^[-•*]\s*/, ""), { x: X + 10, w: MW - 10, size: 22, lh: 31, color: "#333" });
+        d.gap(14);
+      });
+    }
+    entries("Kaam ka anubhav", st.exp); entries("Padhai", st.edu);
+    if (!side) {
+      var sk = String(st.skills || "").split(/[,\n]/).map(function (s) { return s.trim(); }).filter(Boolean);
+      if (sk.length) { sec("Skills"); d.text(sk.join("   •   "), { x: X, w: MW, size: 23, lh: 34, color: "#333" }); }
+      var lg = String(st.langs || "").split(/[,\n]/).map(function (s) { return s.trim(); }).filter(Boolean);
+      if (lg.length) { sec("Bhashayein"); d.text(lg.join("   •   "), { x: X, w: MW, size: 23, color: "#333" }); }
+    }
+    if (String(st.extra || "").trim()) { sec("Anya jaankari"); d.text(st.extra.trim(), { x: X, w: MW, size: 22, lh: 32, color: "#333" }); }
+    return d;
+  }
+  S.register({ id: "resume", name: "Resume Pro", run: function (root) {
+    var st = { tpl: "side", brand: "#263238", name: "", title: "", phone: "", email: "", addr: "", photo: null, summary: "", exp: "", edu: "", skills: "", langs: "", extra: "" };
+    var save = L.persist("toxic.pv.resume", st, ["tpl", "brand", "name", "title", "phone", "email", "addr", "summary", "exp", "edu", "skills", "langs", "extra"]);
+    var spec = [
+      { t: "sec", l: "Aapki jaankari" },
+      { k: "name", l: "Poora naam", max: 50 }, { k: "title", l: "Kaunsi job / pad ke liye", ph: "Jaise: Accountant", max: 60 },
+      { k: "phone", l: "Phone", max: 20 }, { k: "email", l: "Email", max: 60 }, { k: "addr", l: "Pata", max: 120 },
+      { k: "photo", l: "Photo (zaroori nahi)", t: "image", max: 500, hint: "Photo nahi hai" },
+      { t: "sec", l: "Parichay" },
+      { k: "summary", l: "Apne baare mein 2-3 line", t: "textarea", rows: 4, max: 600 },
+      { t: "sec", l: "Anubhav aur padhai" },
+      { k: "exp", l: "Kaam ka anubhav", t: "textarea", rows: 6, ph: "Pad - Jagah (saal)\nKya kiya\nKya kiya\n\nAgla kaam...", max: 2000 },
+      { k: "edu", l: "Padhai", t: "textarea", rows: 4, ph: "B.Com - Ajmer University (2022)\n\n12th - RBSE (2019)", max: 1000 },
+      { t: "sec", l: "Skills aur bhasha" },
+      { k: "skills", l: "Skills (comma se alag karo)", t: "textarea", rows: 2, ph: "Tally, MS Excel, Hindi typing", max: 400 },
+      { k: "langs", l: "Bhashayein", ph: "Hindi, English, Marwari", max: 120 },
+      { k: "extra", l: "Anya (shauk, uplabdhi)", t: "textarea", rows: 3, max: 600 },
+      { t: "sec", l: "Design" },
+      { k: "tpl", l: "Template", t: "select", opts: [["side", "Side patti (rangeen)"], ["single", "Saaf (ek column)"]] },
+      { k: "brand", l: "Rang", t: "select", opts: BRANDS.concat([["#1B5E20", "Gehra hara"]]) }
+    ];
+    var prev = h("div", "pv-sheet"), doc = null;
+    function render() { doc = buildResume(st); prev.textContent = ""; doc.pages.forEach(function (cv) { cv.className = "pv-prev"; prev.append(cv); }); }
+    var again = L.debounce(render, 350);
+    L.form(root, spec, st, function (k) { if (k !== "photo") save(); again(); });
+    var aiBtn = S.btn("AI se parichay likhwao", "btn-block", function () {
+      var info = "Naam: " + st.name + "\nPad: " + st.title + "\nAnubhav:\n" + st.exp + "\nPadhai:\n" + st.edu + "\nSkills: " + st.skills;
+      if (!st.name.trim() && !st.exp.trim()) { S.say("Pehle naam aur anubhav likho"); return; }
+      aiBtn.disabled = true; aiBtn.textContent = "Soch raha hoon...";
+      L.ai("Diye gaye vivaran se resume ke liye 2-3 line ka saaf professional parichay (summary) likho. Sirf wahi likho jo diya gaya hai, kuch jodo mat. Sirf parichay ka text do, koi heading nahi.", info).then(function (t) {
+        st.summary = t.replace(/\*\*|__|`/g, "").trim(); save(); var ta = root.querySelectorAll("textarea"); ta.forEach(function (x) { if (x.maxLength === 600 && x.rows === 4) x.value = st.summary; }); render();
+      }, function (e) { S.say(e.message || "AI se jawab nahi mila"); }).then(function () { aiBtn.disabled = false; aiBtn.textContent = "AI se parichay likhwao"; });
+    });
+    root.append(aiBtn, h("div", "pv-sec", "Preview"), prev);
+    L.exportBar(root, function () { if (!String(st.name).trim()) throw new Error("Pehle apna naam likho"); render(); return doc.pages; }, "resume-" + (String(st.name).trim().split(/\s+/)[0] || "my").toLowerCase().replace(/[^\w]/g, ""), "Mera resume");
+    root.append(h("div", "pv-note", "Resume ka PDF photo ke roop mein banta hai, isliye online form mein text copy nahi hoga. Jaankari sirf aapke phone mein rehti hai; sirf \"AI se parichay\" dabane par likhi baatein AI ko jaati hain."));
+    render();
+  } });
+})();
