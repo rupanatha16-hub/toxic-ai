@@ -951,6 +951,32 @@
     bodyEl.scrollTop = 0;
   }
 
+  /* ---------- Premium tools ke liye hook: nayi files se tool jodne ka raasta (baaki code na chheda) ---------- */
+  var PREM = {}, retTo = null;
+  function shareFile(blob, name, text) {
+    try {
+      var f = new File([blob], name, { type: blob.type });
+      if (navigator.canShare && navigator.canShare({ files: [f] })) { navigator.share({ files: [f], text: text || "" }).catch(function () {}); return; }
+    } catch (e) {}
+    if (navigator.share && text) { navigator.share({ text: text }).catch(function () {}); say("Is phone par file share nahi ho sakti, text share hua"); return; }
+    saveBlob(blob, name); say("Share nahi ho paya, file download ho gayi");
+  }
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement("script"); s.src = src; s.onload = res;
+      s.onerror = function () { rej(new Error("File nahi mili: " + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  window.ToxicStudio = {
+    register: function (t) { if (t && t.id && typeof t.run === "function") PREM[t.id] = t; },
+    has: function (id) { return !!PREM[id]; },
+    open: function (id, from) { var t = PREM[id]; if (!t) return false; retTo = from || null; open(t); return true; },
+    h: h, q: q, btn: btn, field: field, row: row, inp: inp, say: say, copyText: copyText, saveBlob: saveBlob, shareFile: shareFile,
+    fmtSize: fmtSize, pickImage: pickImage, loadImg: loadImg, buildPdf: buildPdf, store: store, loadScript: loadScript,
+    API: API, RULE: RULE_T
+  };
+
   /* ---------- screen, nav, style jodna ---------- */
   var CSS = [
     ".st-ico{display:inline-grid;place-items:center;vertical-align:middle}",
@@ -994,7 +1020,7 @@
     menu.onclick = function () { if (typeof openDrawer === "function") openDrawer(); };
     titleEl = h("h2", "", "Studio");
     backBtn = h("button", "icon-btn"); backBtn.type = "button"; backBtn.setAttribute("aria-label", "Peeche"); backBtn.append(icon("back", 22)); backBtn.hidden = true;
-    backBtn.onclick = renderList;
+    backBtn.onclick = function () { var r = retTo; retTo = null; renderList(); if (r && typeof show === "function") show(r); };
     top.append(menu, titleEl, backBtn);
     bodyEl = h("div", "body");
     screen.append(top, bodyEl);
