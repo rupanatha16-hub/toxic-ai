@@ -1,7 +1,7 @@
 "use strict";
 /* TOXIC AI - Premium (abhi DEMO). Koi payment nahi, koi nakli activation nahi.
    Pehli baar Google se sign in ke baad plan wala page ek baar dikhta hai.
-   Tools screen (Premium Section) mein: TOXIC AI Premium card, search, category chips aur 19 tool.
+   Tools screen (Premium Section) mein: TOXIC AI Premium card, search, category chips aur 20 tool.
    Koi secret nahi. */
 (function () {
   var SEEN = "toxic.prem.seen";
@@ -22,14 +22,15 @@
     ["watermark", "Watermark Studio"], ["invoice", "Invoice Maker"], ["resume", "Resume Pro"], ["pdfmaster", "PDF Master"],
     ["scanner", "Document Scanner"], ["quote", "Quotation Maker"], ["compress", "Image Compressor"], ["qrpro", "QR Designer Pro"],
     ["planner", "Social Media Planner"], ["hinditype", "Hindi Typing Pro"], ["password", "Password Manager Tools"],
-    ["website", "Mini Website Maker"], ["invite", "Invitation Maker"], ["textfmt", "Text Formatter Pro"], ["notespro", "Smart Notes Pro"]
+    ["website", "Mini Website Maker"], ["invite", "Invitation Maker"], ["textfmt", "Text Formatter Pro"], ["notespro", "Smart Notes Pro"],
+    ["passport", "Passport Photo Maker"]
   ];
   var NAMES = {};
   PTOOLS.forEach(function (pt) { NAMES[pt[0]] = pt[1]; });
   var CATS = [
     ["Business", ["invoice", "quote", "vcard", "resume", "planner"]],
     ["Design", ["logo", "poster", "invite", "collage"]],
-    ["Photo", ["watermark", "compress", "scanner"]],
+    ["Photo", ["watermark", "compress", "scanner", "passport"]],
     ["Docs", ["pdfmaster", "notespro", "textfmt", "hinditype"]],
     ["Aur", ["qrpro", "password", "website"]]
   ];
@@ -38,6 +39,7 @@
     check: '<path d="M5 12l5 5l10-10"/>',
     x: '<path d="M18 6l-12 12"/><path d="M6 6l12 12"/>',
     chev: '<path d="M9 6l6 6l-6 6"/>',
+    passport: '<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 18c.8-2.2 2.5-3.2 4.5-3.2s3.7 1 4.5 3.2"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'
   };
   function icon(n, s) {
@@ -104,6 +106,15 @@
     "#premWrap .tool b{color:#F7F7FC}" +
     "#premWrap .tool small{color:#29D9E8}" +
     "#premWrap .tool small.soon{color:#C7B8FF}" +
+    "#premWrap .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}" +
+    "#premWrap .ptool{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;text-align:left;min-height:118px;width:100%;margin:0;box-sizing:border-box}" +
+    "#premWrap .ptool b{display:block;flex:1 1 auto}" +
+    "#premWrap .ptool small{display:block;flex:none;margin-top:2px}" +
+    "#premWrap .grid>.ptool:last-child:nth-child(odd){grid-column:1/-1;display:grid;grid-template-columns:46px 1fr;column-gap:12px;align-items:center;min-height:78px}" +
+    "#premWrap .grid>.ptool:last-child:nth-child(odd) .pico{grid-row:1/3;margin:0}" +
+    "#premWrap .grid>.ptool:last-child:nth-child(odd) b{grid-column:2;align-self:end;flex:none}" +
+    "#premWrap .grid>.ptool:last-child:nth-child(odd) small{grid-column:2;align-self:start}" +
+    "#premWrap .grid>.ptool:last-child:nth-child(odd) .plk{top:50%;transform:translateY(-50%)}" +
     "#premWrap .ptool .plk{color:#C7B8FF}" +
     "#premWrap .ptool .plk.on{color:#29D9E8}";
   document.head.appendChild(css);
@@ -181,7 +192,7 @@
     var c = mk("button", "tool ptool");
     c.type = "button";
     var ib = mk("span", "pico");
-    ib.innerHTML = IC ? IC.svg(id, 24) : "";
+    ib.innerHTML = ICONS[id] ? icon(id, 24) : (IC ? IC.svg(id, 24) : "");
     c.append(ib);
     var mark = mk("span", ready ? "plk on" : "plk");
     mark.innerHTML = ready ? icon("crown", 16) : (IC ? IC.svg("lock", 16) : "");
