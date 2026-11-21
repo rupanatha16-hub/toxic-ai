@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TOXIC AI - Jaanch</title>
+<style>
+body{margin:0;padding:16px;background:#10111B;color:#F7F7FC;font:15px/1.5 system-ui,sans-serif}
+h1{font-size:20px;margin:0 0 6px}
+p{color:#C7B8FF;margin:0 0 12px}
+button{background:#7055E8;color:#fff;border:0;border-radius:12px;padding:12px 16px;font-size:16px;margin:4px 6px 12px 0}
+pre{white-space:pre-wrap;word-break:break-word;background:#1b1c2b;border-radius:12px;padding:12px;font-size:13px}
+.ok{color:#29D9E8}.bad{color:#ff6b6b;font-weight:700}.hd{color:#C7B8FF;font-weight:700}
+</style>
+</head>
+<body>
+<h1>TOXIC AI - Jaanch</h1>
+<p>Ye page app ki kisi file ko nahi chhedta. Sirf padhkar batata hai.</p>
+<button id="go">Jaanch shuru karo</button><button id="cp">Report copy karo</button>
+<pre id="out">Upar "Jaanch shuru karo" dabao.</pre>
+<script>
+(function () {
+  var out = document.getElementById("out"), lines = [];
+  function add(t, c) { lines.push(t); var s = document.createElement("div"); s.className = c || ""; s.textContent = t; if (lines.length === 1) out.textContent = ""; out.appendChild(s); }
+  var FILES = ["app.js","studio.js","auth.js","settings.js","icons.js","toxiclib.js","toolsA.js","toolsB.js","premium.js","service-worker.js"];
+  var IDS = ["logo","poster","vcard","collage","watermark","invoice","resume","pdfmaster","scanner","quote","compress","qrpro","planner","hinditype","password","website","invite","textfmt","notespro"];
+  var base = location.href.replace(/[^\/]*([?#].*)?$/, "");
+  function kb(n) { return (n / 1024).toFixed(1) + " KB"; }
+
+  function checkFiles() {
+    add("1) FILEN (download + syntax)", "hd");
+    return FILES.reduce(function (p, f) {
+      return p.then(function () {
+        return fetch(base + f + "?c=" + Date.now(), { cache: "no-store" }).then(function (r) {
+          if (!r.ok) { add(f + ": NAHI MILI (HTTP " + r.status + ")", "bad"); return; }
+          return r.text().then(function (t) {
+            try { new Function(t); add(f + ": OK, " + kb(t.length) + ", syntax theek", "ok"); }
+            catch (e) { add(f + ": SYNTAX GALAT - " + e.message, "bad"); }
+          });
+        }).catch(function (e) { add(f + ": khul nahi paayi - " + e.message, "bad"); });
+      });
+    }, Promise.resolve());
+  }
+
+  function checkApp() {
+    add("", ""); add("2) ASLI APP (index.html chalakar)", "hd");
+    return fetch(base + "index.html?c=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (html) {
+      var probe = '<base href="' + base + '"><script>window.__errs=[];window.addEventListener("error",function(e){window.__errs.push((e.filename||"").split("/").pop()+" line "+e.lineno+": "+e.message)});window.addEventListener("unhandledrejection",function(e){window.__errs.push("promise: "+((e.reason&&e.reason.message)||e.reason))});<\/script>';
+      html = html.replace("<head>", "<head>" + probe);
+      return new Promise(function (res) {
+        var fr = document.createElement("iframe");
+        fr.style.cssText = "position:absolute;left:0;top:0;width:380px;height:640px;opacity:0;pointer-events:none";
+        fr.onload = function () { setTimeout(function () { res(fr); }, 4000); };
+        fr.srcdoc = html; document.body.appendChild(fr);
+      });
+    }).then(function (fr) {
+      var w = fr.contentWindow;
+      var errs = w.__errs || [];
+      if (errs.length) { errs.forEach(function (e) { add("ERROR: " + e, "bad"); }); } else add("Koi JS error nahi pakda gaya", "ok");
+      add("ToxicStudio: " + (w.ToxicStudio ? "bana" : "NAHI BANA"), w.ToxicStudio ? "ok" : "bad");
+      add("ToxicLib: " + (w.ToxicLib ? "bana" : "NAHI BANA"), w.ToxicLib ? "ok" : "bad");
+      add("ToxicPremium: " + (w.ToxicPremium ? "bana" : "NAHI BANA"), w.ToxicPremium ? "ok" : "bad");
+      if (w.ToxicStudio && w.ToxicStudio.has) {
+        var yes = [], no = [];
+        IDS.forEach(function (i) { (w.ToxicStudio.has(i) ? yes : no).push(i); });
+        add("Register hue tool (" + yes.length + "): " + (yes.join(", ") || "koi nahi"), yes.length ? "ok" : "bad");
+        add("Baaki (" + no.length + "): " + no.join(", "), "");
+      }
+      fr.remove();
+    });
+  }
+
+  function checkSW() {
+    add("", ""); add("3) SERVICE WORKER / CACHE", "hd");
+    var p = Promise.resolve();
+    if (navigator.serviceWorker) {
+      p = navigator.serviceWorker.getRegistrations().then(function (r) { add("Service worker: " + r.length + " mila", ""); });
+    }
+    if (window.caches) {
+      p = p.then(function () { return caches.keys(); }).then(function (k) { add("Cache ke naam: " + (k.join(", ") || "koi nahi"), ""); });
+    }
+    return p.catch(function (e) { add("Jaanch nahi ho payi: " + e.message, "bad"); });
+  }
+
+  document.getElementById("go").onclick = function () {
+    lines = []; out.textContent = "Jaanch chal rahi hai... (10 second)";
+    checkFiles().then(checkApp).then(checkSW).then(function () { add("", ""); add("Jaanch poori. Is poore page ka screenshot bhejo.", "hd"); })
+      .catch(function (e) { add("Jaanch beech mein ruki: " + e.message, "bad"); });
+  };
+  document.getElementById("cp").onclick = function () {
+    var t = lines.join("\n");
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { alert("Copy ho gaya"); }, function () { alert("Copy nahi hua"); });
+  };
+})();
+</script>
+</body>
+</html>
