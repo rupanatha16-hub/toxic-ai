@@ -116,6 +116,11 @@
     fileimg: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="10" cy="12" r="2"/><path d="m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"/>'
   };
   for (var k2 in IC2) IC[k2] = IC2[k2];
+  IC.crop = '<path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/>';
+  IC.undo = '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>';
+  IC.rotate = '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>';
+  IC.scan = '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>';
+  IC.addp = '<circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/>';
   IC.up = '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>';
   IC.down = '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>';
   IC.plus = '<path d="M5 12h14"/><path d="M12 5v14"/>';
@@ -278,7 +283,8 @@
   var BTN_IC = [
     [/^\+|^jodo$/i, "plus"], [/download/i, "download"], [/^save/i, "download"], [/share/i, "share"], [/copy/i, "copy"],
     [/hatao|delete|mitao/i, "trash"], [/^upar$/i, "up"], [/^neeche$/i, "down"], [/camera/i, "camera"],
-    [/photo|gallery|chuno|image|\bjpg\b|\bpng\b/i, "image"], [/banao|generate/i, "wand"]
+    [/photo|gallery|chuno|image|\bjpg\b|\bpng\b/i, "image"], [/banao|generate/i, "wand"],
+    [/seedha/i, "crop"], [/wapas/i, "undo"], [/ghumao|rotate/i, "rotate"], [/kinare/i, "scan"], [/jodo/i, "addp"]
   ];
   var BTN_URL = {};
   function btnIconUrl(n) {
