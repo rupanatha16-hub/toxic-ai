@@ -115,6 +115,9 @@
     fileimg: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="10" cy="12" r="2"/><path d="m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"/>'
   };
   for (var k2 in IC2) IC[k2] = IC2[k2];
+  IC.up = '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>';
+  IC.down = '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>';
+  IC.plus = '<path d="M5 12h14"/><path d="M12 5v14"/>';
   IC.qr = '<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>';
   var TOOL_IC = {
     w_email: "mail", w_essay: "essay", w_story: "story", w_poem: "feather", w_shayari: "heart", w_blog: "rss", w_article: "news",
@@ -271,7 +274,26 @@
   function D(id, cat, ic, name, desc, run) { B.push({ id: id, cat: cat, ic: ic, name: name, desc: desc, run: run }); }
   function field(label, node) { var w = h("label", "st-field"); w.append(h("span", "st-lab", label), node); return w; }
   function inp(type, val) { var i = h("input", "input"); i.type = type; if (val != null) i.value = val; return i; }
-  function btn(text, cls, fn) { var b = h("button", "btn " + (cls || ""), text); b.type = "button"; b.onclick = fn; return b; }
+  var BTN_IC = [
+    [/^\+|^jodo$/i, "plus"], [/download/i, "download"], [/^save/i, "download"], [/share/i, "share"], [/copy/i, "copy"],
+    [/hatao|delete|mitao/i, "trash"], [/^upar$/i, "up"], [/^neeche$/i, "down"], [/camera/i, "camera"],
+    [/photo|gallery|chuno|image|\bjpg\b|\bpng\b/i, "image"], [/banao|generate/i, "wand"]
+  ];
+  var BTN_URL = {};
+  function btnIconUrl(n) {
+    if (!BTN_URL[n] && IC[n]) {
+      BTN_URL[n] = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + IC[n] + '</svg>') + '")';
+    }
+    return BTN_URL[n] || "";
+  }
+  function btn(text, cls, fn) {
+    var b = h("button", "btn " + (cls || ""), text); b.type = "button"; b.onclick = fn;
+    var t = String(text == null ? "" : text);
+    for (var i = 0; i < BTN_IC.length; i++) {
+      if (BTN_IC[i][0].test(t)) { var u = btnIconUrl(BTN_IC[i][1]); if (u) { b.setAttribute("data-ic", BTN_IC[i][1]); b.style.setProperty("--ic", u); if (/^\+\s*/.test(t)) b.textContent = t.replace(/^\+\s*/, ""); } break; }
+    }
+    return b;
+  }
   function row() { var r = h("div", "st-row"); for (var k = 0; k < arguments.length; k++) r.append(arguments[k]); return r; }
 
   /* Calculator (eval nahi, apna safe parser) */
@@ -979,6 +1001,8 @@
 
   /* ---------- screen, nav, style jodna ---------- */
   var CSS = [
+    ".btn[data-ic]{display:inline-flex;align-items:center;justify-content:center;gap:8px}",
+    ".btn[data-ic]::before{content:\"\";flex:none;width:18px;height:18px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}",
     ".st-ico{display:inline-grid;place-items:center;vertical-align:middle}",
     ".st-card .st-ico-box{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;margin-bottom:10px;color:#fff;background:linear-gradient(135deg,#7055E8,#397BFF)}",
     ".st-card b{display:block;font-size:15px;line-height:1.25}",
