@@ -1,5 +1,5 @@
 "use strict";
-/* TOXIC AI - Premium tools D: Social Media Planner, Hindi Typing Pro, Password Manager Tools,
+/* TOXIC AI - Premium tools D: Social Media Planner, Hindi Typing Pro, Password Manager Tools, Passport Photo Maker,
    Mini Website Maker, Text Formatter Pro, Smart Notes Pro.
    Sab kuch phone ke browser mein hota hai. Koi secret nahi. Sirf "AI" wale button likhi hui baatein AI ko bhejte hain. */
 (function () {
@@ -372,5 +372,155 @@
       box.append(S.btn("Ye note hatao", "btn-block", function () { if (confirm("Ye note hamesha ke liye hat jayega. Pakka?")) { notes = notes.filter(function (x) { return x !== n; }); store(); list(); } }));
     }
     root.append(box); list();
+  } });
+
+  /* ================= PASSPORT PHOTO MAKER ================= */
+  var PP_SIZES = [["35x45", "35 x 45 mm (aam passport)"], ["20x25", "20 x 25 mm (stamp)"], ["50.8x50.8", "2 x 2 inch (51 x 51 mm)"]];
+  var PP_PAGES = [["4x6", "4 x 6 inch photo page"], ["a4", "A4 page"]];
+  var PP_MM = { "4x6": [101.6, 152.4], a4: [210, 297] };
+  function ppFit(pw, ph, w, hh) { var m = 3, g = 2; return { c: Math.max(Math.floor((pw - 2 * m + g) / (w + g)), 0), r: Math.max(Math.floor((ph - 2 * m + g) / (hh + g)), 0) }; }
+  function ppLayout(pw, ph, w, hh, n) {
+    var g = 2, a = ppFit(pw, ph, w, hh), b = ppFit(ph, pw, w, hh);
+    var land = b.c * b.r > a.c * a.r, W = land ? ph : pw, H = land ? pw : ph, f = land ? b : a;
+    var cap = f.c * f.r, count = Math.min(n, cap);
+    if (!count) return { W: W, H: H, cap: 0, count: 0, cols: 0, rows: 0, x0: 0, y0: 0, g: g };
+    var rows = Math.ceil(count / f.c), cols = Math.ceil(count / rows);
+    var gw = cols * w + (cols - 1) * g, gh = rows * hh + (rows - 1) * g;
+    return { W: W, H: H, cap: cap, count: count, cols: cols, rows: rows, x0: (W - gw) / 2, y0: (H - gh) / 2, g: g };
+  }
+  function ppPdf(jpg, pxW, pxH, ptW, ptH) {
+    var enc = new TextEncoder(), parts = [], offs = [], len = 0;
+    function push(x) { var b = typeof x === "string" ? enc.encode(x) : x; parts.push(b); len += b.length; }
+    function ob(n) { offs[n] = len; }
+    var f2 = function (v) { return v.toFixed(2); };
+    push("%PDF-1.4\n");
+    ob(1); push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+    ob(2); push("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+    ob(3); push("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + f2(ptW) + " " + f2(ptH) + "] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n");
+    ob(4); push("4 0 obj\n<< /Type /XObject /Subtype /Image /Width " + pxW + " /Height " + pxH + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + jpg.length + " >>\nstream\n"); push(jpg); push("\nendstream\nendobj\n");
+    var cs = "q " + f2(ptW) + " 0 0 " + f2(ptH) + " 0 0 cm /Im0 Do Q";
+    ob(5); push("5 0 obj\n<< /Length " + cs.length + " >>\nstream\n" + cs + "\nendstream\nendobj\n");
+    var xr = len, x = "xref\n0 6\n0000000000 65535 f \n";
+    for (var i = 1; i <= 5; i++) x += ("0000000000" + offs[i]).slice(-10) + " 00000 n \n";
+    push(x + "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xr + "\n%%EOF");
+    return new Blob(parts, { type: "application/pdf" });
+  }
+  var PRINT_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>';
+
+  S.register({ id: "passport", name: "Passport Photo Maker", run: function (root) {
+    var st = { size: "35x45", copies: "8", page: "4x6" };
+    var save = L.persist("toxic.pv.passport", st, ["size", "copies", "page"]);
+    var img = null, url = "", cx = 0, cy = 0, zoom = 1, drag = null, timer = 0;
+    var FW = 240;
+    function dims() { var p = String(st.size).split("x"); return [parseFloat(p[0]), parseFloat(p[1])]; }
+    function vis() {
+      var d = dims(), vw = Math.min(img.naturalWidth, img.naturalHeight * d[0] / d[1]) / zoom;
+      return { vw: vw, vh: vw * d[1] / d[0] };
+    }
+    function clampC() { var v = vis(); cx = Math.max(v.vw / 2, Math.min(img.naturalWidth - v.vw / 2, cx)); cy = Math.max(v.vh / 2, Math.min(img.naturalHeight - v.vh / 2, cy)); }
+    function drawTo(ctx, w, hh) {
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, hh);
+      if (!img) return;
+      var v = vis(); ctx.drawImage(img, cx - v.vw / 2, cy - v.vh / 2, v.vw, v.vh, 0, 0, w, hh);
+    }
+    var frame = document.createElement("canvas"), fctx = frame.getContext("2d");
+    frame.style.cssText = "display:block;margin:8px auto;border-radius:8px;border:1px solid var(--border);background:#fff;touch-action:none;max-width:100%";
+    function sizeFrame() { var d = dims(), fh = Math.round(FW * d[1] / d[0]); frame.width = FW * 2; frame.height = fh * 2; frame.style.width = FW + "px"; frame.style.height = fh + "px"; }
+    function drawFrame() {
+      var w = frame.width, hh = frame.height;
+      if (!img) { fctx.fillStyle = "#e9e9f3"; fctx.fillRect(0, 0, w, hh); fctx.fillStyle = "#6b6b80"; fctx.font = "bold 28px sans-serif"; fctx.textAlign = "center"; fctx.fillText("Photo chuno", w / 2, hh / 2); return; }
+      clampC(); drawTo(fctx, w, hh);
+      fctx.save(); fctx.strokeStyle = "rgba(41,217,232,.95)"; fctx.lineWidth = 3; fctx.setLineDash([12, 8]);
+      fctx.beginPath(); fctx.ellipse(w / 2, hh * 0.43, w * 0.27, hh * 0.33, 0, 0, Math.PI * 2); fctx.stroke(); fctx.restore();
+    }
+    function buildPage(dpi) {
+      var d = dims(), pg = PP_MM[st.page], L2 = ppLayout(pg[0], pg[1], d[0], d[1], parseInt(st.copies, 10));
+      var px = function (mm) { return Math.round(mm / 25.4 * dpi); };
+      var cv = document.createElement("canvas"); cv.width = px(L2.W); cv.height = px(L2.H);
+      var c = cv.getContext("2d"); c.fillStyle = "#fff"; c.fillRect(0, 0, cv.width, cv.height);
+      if (!img || !L2.count) return { cv: cv, L: L2 };
+      var tw = px(d[0]), th = px(d[1]), tile = document.createElement("canvas"); tile.width = tw; tile.height = th;
+      drawTo(tile.getContext("2d"), tw, th);
+      c.strokeStyle = "#b5b5c0"; c.lineWidth = Math.max(1, dpi / 150);
+      for (var i = 0; i < L2.count; i++) {
+        var x = px(L2.x0 + (i % L2.cols) * (d[0] + L2.g)), y = px(L2.y0 + Math.floor(i / L2.cols) * (d[1] + L2.g));
+        c.drawImage(tile, x, y, tw, th); c.strokeRect(x + 0.5, y + 0.5, tw - 1, th - 1);
+      }
+      return { cv: cv, L: L2 };
+    }
+    var pageCv = document.createElement("canvas");
+    pageCv.style.cssText = "display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:8px;background:#fff";
+    var info = h("div", "st-prov", "");
+    function drawPage() {
+      var r = buildPage(75); pageCv.width = r.cv.width; pageCv.height = r.cv.height; pageCv.getContext("2d").drawImage(r.cv, 0, 0);
+      var d = dims(), pn = st.page === "a4" ? "A4" : "4x6 inch", want = parseInt(st.copies, 10);
+      if (!r.L.cap) info.textContent = "Is page par ye size nahi aati. A4 chuno.";
+      else if (want > r.L.cap) info.textContent = pn + " par " + d[0] + "x" + d[1] + " mm ki sirf " + r.L.cap + " copy aati hain (aapne " + want + " chuni). Zyada chahiye to A4 chuno.";
+      else info.textContent = pn + " par " + r.L.count + " copy. Chhapne se pehle 100% size / Actual size chuno.";
+    }
+    function later() { clearTimeout(timer); timer = setTimeout(drawPage, 150); }
+    function refresh() { sizeFrame(); drawFrame(); drawPage(); }
+    function setImg(f) {
+      if (url) URL.revokeObjectURL(url);
+      url = URL.createObjectURL(f); var im = new Image();
+      im.onload = function () { img = im; cx = im.naturalWidth / 2; cy = im.naturalHeight / 2; zoom = 1; zr.value = "1"; refresh(); S.say("Photo aa gayi. Ungli se khiskao"); };
+      im.onerror = function () { S.say("Ye photo khul nahi payi"); };
+      im.src = url;
+    }
+    frame.addEventListener("pointerdown", function (e) { if (!img) return; drag = { x: e.clientX, y: e.clientY }; try { frame.setPointerCapture(e.pointerId); } catch (x) {} });
+    frame.addEventListener("pointermove", function (e) {
+      if (!drag || !img) return;
+      var v = vis(), rect = frame.getBoundingClientRect(), k = v.vw / rect.width;
+      cx -= (e.clientX - drag.x) * k; cy -= (e.clientY - drag.y) * k; drag = { x: e.clientX, y: e.clientY };
+      drawFrame(); later();
+    });
+    var endDrag = function () { drag = null; };
+    frame.addEventListener("pointerup", endDrag); frame.addEventListener("pointercancel", endDrag);
+
+    var zr = document.createElement("input"); zr.type = "range"; zr.min = "1"; zr.max = "4"; zr.step = "0.02"; zr.value = "1"; zr.style.width = "100%";
+    zr.oninput = function () { zoom = parseFloat(zr.value) || 1; if (img) { drawFrame(); later(); } };
+
+    root.append(note("Photo chuno, phir ungli se khiskao aur zoom karke chehra gol ke andaar rakho. Gol sirf madad ke liye hai, print mein nahi aata. Aapke form ki sahi nap alag ho sakti hai, pehle wo dekh lo."));
+    root.append(S.btn("Photo chuno", "btn-primary btn-block", function () { pickFile("image/*", setImg); }));
+    root.append(frame, S.field("Zoom", zr));
+    root.append(S.field("Size", sel(PP_SIZES, st.size, function (v) { st.size = v; save(); refresh(); })));
+    root.append(S.field("Kitni copy", sel([["4", "4 copy"], ["8", "8 copy"], ["12", "12 copy"]], st.copies, function (v) { st.copies = v; save(); drawPage(); })));
+    root.append(S.field("Page", sel(PP_PAGES, st.page, function (v) { st.page = v; save(); drawPage(); })));
+    root.append(sec("Page ka namuna"), pageCv, info);
+
+    function need() { if (!img) { S.say("Pehle photo chuno"); return false; } if (!buildPage(75).L.count) { S.say("Is page par ye size nahi aati"); return false; } return true; }
+    function makePdf() {
+      return new Promise(function (res, rej) {
+        var r = buildPage(300), pg = r.cv;
+        pg.toBlob(function (b) {
+          if (!b) { rej(new Error("Photo ban nahi payi")); return; }
+          b.arrayBuffer().then(function (ab) { res(ppPdf(new Uint8Array(ab), pg.width, pg.height, r.L.W / 25.4 * 72, r.L.H / 25.4 * 72)); }, rej);
+        }, "image/jpeg", 0.95);
+      });
+    }
+    function printPage() {
+      var r = buildPage(300);
+      r.cv.toBlob(function (b) {
+        if (!b) { S.say("Photo ban nahi payi"); return; }
+        var u = URL.createObjectURL(b), fr = document.createElement("iframe");
+        fr.style.cssText = "position:fixed;left:-9999px;top:0;width:10px;height:10px;border:0";
+        fr.srcdoc = "<!doctype html><style>@page{size:" + r.L.W + "mm " + r.L.H + "mm;margin:0}html,body{margin:0;padding:0}img{display:block;width:" + r.L.W + "mm;height:" + r.L.H + "mm}</style><img src=\"" + u + "\">";
+        fr.onload = function () {
+          var im = fr.contentDocument && fr.contentDocument.querySelector("img");
+          var go = function () { try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { S.say("Print khidki nahi khuli. PDF download karke wahan se print karo"); } };
+          if (im && !im.complete) im.onload = go; else go();
+        };
+        document.body.appendChild(fr);
+        setTimeout(function () { try { document.body.removeChild(fr); } catch (e) {} URL.revokeObjectURL(u); }, 120000);
+      }, "image/jpeg", 0.95);
+    }
+    var pb = S.btn("Print", "", function () { if (need()) printPage(); });
+    if (!pb.querySelector("svg")) { var sp = document.createElement("span"); sp.innerHTML = PRINT_SVG; sp.style.cssText = "display:inline-flex;margin-right:6px;vertical-align:middle"; pb.insertBefore(sp, pb.firstChild); }
+    root.append(S.row(
+      S.btn("PDF download", "btn-primary", function () { if (!need()) return; makePdf().then(function (b) { S.saveBlob(b, "passport-photos-" + L.todayISO() + ".pdf"); S.say("PDF save hui"); }, function (e) { S.say(e.message || "PDF nahi bani"); }); }),
+      S.btn("Share", "", function () { if (!need()) return; makePdf().then(function (b) { S.shareFile(b, "passport-photos.pdf", "Passport photos"); }, function (e) { S.say(e.message || "PDF nahi bani"); }); }),
+      pb));
+    root.append(note("Print ke liye printer chahiye. Background badalna aur chehra apne aap pehchanna isme nahi hai."));
+    refresh();
   } });
 })();
