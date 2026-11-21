@@ -359,4 +359,152 @@
     return S.buildPdf(pages);
   }
   /* Neeche ke teen button: PDF / Share / Photo. getCanvases() canvas ki list deta hai */
-  function 
+  function exportBar(root, getCanvases, name, shareText, onDone) {
+    var wrap = h("div", "st-row");
+    function guard(fn) {
+      return function () {
+        var cs; try { cs = getCanvases(); } catch (e) { S.say(e.message || "Pehle jaankari bharo"); return; }
+        if (!cs || !cs.length) { S.say("Pehle jaankari bharo"); return; }
+        try { Promise.resolve(fn(cs)).then(function () { if (onDone) onDone(); }, function (e) { S.say(e.message || "Nahi ho paya"); }); } catch (e2) { S.say(e2.message || "Nahi ho paya"); }
+      };
+    }
+    var bPdf = S.btn("PDF download", "btn-primary", guard(function (cs) { S.saveBlob(pdfFrom(cs), name + ".pdf"); S.say("PDF ban gayi"); }));
+    var bShare = S.btn("Share karo", "", guard(function (cs) { S.shareFile(pdfFrom(cs), name + ".pdf", shareText || name); }));
+    var bPng = S.btn("Photo (PNG)", "", guard(function (cs) { return toBlob(cs[0], "image/png").then(function (b) { S.saveBlob(b, name + ".png"); S.say("Photo save hui"); }); }));
+    wrap.append(bPdf, bShare, bPng);
+    root.append(wrap);
+    return wrap;
+  }
+  /* Photo-wale tools ke liye: PNG download + share */
+  function imageBar(root, getCanvas, name, shareText) {
+    var wrap = h("div", "st-row");
+    function guard(fn) { return function () { var c = getCanvas(); if (!c) { S.say("Pehle photo/jaankari daalo"); return; } fn(c).catch(function (e) { S.say(e.message || "Nahi ho paya"); }); }; }
+    wrap.append(
+      S.btn("Download (PNG)", "btn-primary", guard(function (c) { return toBlob(c, "image/png").then(function (b) { S.saveBlob(b, name + ".png"); S.say("Photo save hui"); }); })),
+      S.btn("Share karo", "", guard(function (c) { return toBlob(c, "image/png").then(function (b) { S.shareFile(b, name + ".png", shareText || name); }); })),
+      S.btn("JPG", "", guard(function (c) { var t = canvas(c.width, c.height), x = t.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, t.width, t.height); x.drawImage(c, 0, 0); return toBlob(t, "image/jpeg", 0.92).then(function (b) { S.saveBlob(b, name + ".jpg"); S.say("Photo save hui (" + S.fmtSize(b.size) + ")"); }); }))
+    );
+    root.append(wrap);
+    return wrap;
+  }
+
+  /* ---------- form banane ka sanchaa ---------- */
+  function debounce(fn, ms) { var t = null; return function () { var a = arguments; clearTimeout(t); t = setTimeout(function () { fn.apply(null, a); }, ms); }; }
+  function imageField(f, st, onChange) {
+    var box = h("div", "pv-imgf"), prev = h("img", "pv-thumb"); prev.hidden = true; prev.alt = "";
+    var lab = h("div", "st-prov", "");
+    function show() { if (st[f.k]) { prev.src = st[f.k].toDataURL("image/png"); prev.hidden = false; lab.textContent = ""; } else { prev.hidden = true; lab.textContent = f.hint || "Koi photo nahi"; } }
+    var pick = S.btn(f.btnText || "Photo chuno", "", function () {
+      S.pickImage(function (files) {
+        fileToCanvas(files[0], f.max || 600).then(function (c) { st[f.k] = c; show(); onChange(f.k); }, function (e) { S.say(e.message); });
+      });
+    });
+    var rm = S.btn("Hatao", "", function () { st[f.k] = null; show(); onChange(f.k); });
+    box.append(prev, S.row(pick, rm), lab);
+    show();
+    return { node: box, refresh: show };
+  }
+  function itemsField(f, st, onChange) {
+    var box = h("div", "pv-items");
+    if (!Array.isArray(st[f.k]) || !st[f.k].length) st[f.k] = f.def ? JSON.parse(JSON.stringify(f.def)) : [{ d: "", q: 1, r: "" }];
+    function draw() {
+      box.textContent = "";
+      st[f.k].forEach(function (it, ix) {
+        var r = h("div", "pv-item");
+        var d = S.inp("text", it.d); d.placeholder = f.dph || "Saaman / seva ka naam"; d.maxLength = 120;
+        var q = S.inp("number", it.q); q.inputMode = "decimal"; q.placeholder = "Maatra";
+        var p = S.inp("number", it.r); p.inputMode = "decimal"; p.placeholder = "Bhav (Rs)";
+        d.oninput = function () { it.d = d.value; onChange(f.k); };
+        q.oninput = function () { it.q = q.value; onChange(f.k); };
+        p.oninput = function () { it.r = p.value; onChange(f.k); };
+        var x = S.btn("Hatao", "", function () { if (st[f.k].length > 1) st[f.k].splice(ix, 1); else st[f.k][0] = { d: "", q: 1, r: "" }; draw(); onChange(f.k); });
+        x.className = "btn pv-x";
+        r.append(d, S.row(q, p, x));
+        box.append(r);
+      });
+      box.append(S.btn("+ Aur line jodo", "btn-block", function () { st[f.k].push({ d: "", q: 1, r: "" }); draw(); }));
+    }
+    draw();
+    return { node: box, refresh: draw };
+  }
+  /* spec: [{k,l,t:text|textarea|number|date|select|color|image|items|sec,...}] */
+  function form(root, spec, st, onChange) {
+    var refs = {};
+    spec.forEach(function (f) {
+      if (f.t === "sec") { root.append(h("div", "pv-sec", f.l)); return; }
+      if (st[f.k] === undefined) st[f.k] = f.def != null ? f.def : "";
+      var node;
+      if (f.t === "image") { var r1 = imageField(f, st, onChange); refs[f.k] = r1; root.append(S.field(f.l, r1.node)); return; }
+      if (f.t === "items") { var r2 = itemsField(f, st, onChange); refs[f.k] = r2; root.append(S.field(f.l, r2.node)); return; }
+      if (f.t === "textarea") { node = h("textarea", "input"); node.rows = f.rows || 3; if (f.max) node.maxLength = f.max; }
+      else if (f.t === "select") {
+        node = h("select", "select");
+        f.opts.forEach(function (o) { var op = h("option", "", o[1]); op.value = o[0]; node.append(op); });
+      } else if (f.t === "color") { node = S.inp("color", st[f.k] || "#7055E8"); node.style.height = "44px"; node.style.padding = "4px"; }
+      else {
+        node = S.inp(f.t || "text", ""); if (f.t === "number") node.inputMode = "decimal"; if (f.max) node.maxLength = f.max;
+      }
+      if (f.ph) node.placeholder = f.ph;
+      node.value = st[f.k];
+      var ev = (f.t === "select" || f.t === "date" || f.t === "color") ? "onchange" : "oninput";
+      node[ev] = function () { st[f.k] = node.value; onChange(f.k); };
+      if (f.t === "color") node.oninput = node[ev];
+      refs[f.k] = { node: node, refresh: function () { node.value = st[f.k]; } };
+      root.append(S.field(f.l, node));
+    });
+    return refs;
+  }
+  function persist(key, st, keys) {
+    var saved = S.store.get(key, {}); keys.forEach(function (k) { if (saved[k] !== undefined) st[k] = saved[k]; });
+    return function () { var o = {}; keys.forEach(function (k) { if (typeof st[k] === "string" || typeof st[k] === "number") o[k] = st[k]; }); S.store.set(key, o); };
+  }
+  /* Logo/photo ko chhota karke yaad rakhna (localStorage) */
+  function saveImg(key, c) { try { if (!c) localStorage.removeItem(key); else localStorage.setItem(key, c.toDataURL("image/png")); } catch (e) {} }
+  function loadImgSaved(key) {
+    return new Promise(function (res) {
+      var u = null; try { u = localStorage.getItem(key); } catch (e) {}
+      if (!u) { res(null); return; }
+      var im = new Image(); im.onload = function () { var c = canvas(im.naturalWidth, im.naturalHeight); c.getContext("2d").drawImage(im, 0, 0); res(c); }; im.onerror = function () { res(null); }; im.src = u;
+    });
+  }
+  /* AI (Worker /chat) se kaam: system + text -> reply */
+  function ai(system, text) {
+    if (!S.API) return Promise.reject(new Error("AI abhi jura nahi hai"));
+    var ctrl = new AbortController(), timer = setTimeout(function () { ctrl.abort(); }, 45000);
+    return fetch(S.API + "/chat", {
+      method: "POST", headers: { "Content-Type": "application/json" }, signal: ctrl.signal,
+      body: JSON.stringify({ system: (S.RULE || "") + " " + system, messages: [{ role: "user", content: text }] })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok || !d.reply) throw new Error(d.error || "Server error " + r.status); return String(d.reply); });
+    }).catch(function (e) {
+      if (e && e.name === "AbortError") throw new Error("Time out ho gaya. Dobara koshish karo.");
+      if (e instanceof TypeError) throw new Error("Server se connect nahi ho paya. Internet check karo.");
+      throw e;
+    }).then(function (v) { clearTimeout(timer); return v; }, function (e) { clearTimeout(timer); throw e; });
+  }
+
+  /* CSS (naye classes) */
+  var st = document.createElement("style");
+  st.textContent = [
+    ".pv-prev{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:10px;background:#fff;margin:6px 0}",
+    ".pv-sec{font-weight:700;font-size:15px;margin:10px 0 0;color:var(--text)}",
+    ".pv-thumb{display:block;max-width:120px;max-height:120px;border-radius:10px;border:1px solid var(--border);margin-bottom:6px;background:#fff}",
+    ".pv-item{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;background:var(--card)}",
+    ".pv-x{flex:0 0 auto!important;padding:8px 12px}",
+    ".pv-note{font-size:12px;color:var(--muted);line-height:1.5}",
+    ".pv-chips{display:flex;gap:8px;flex-wrap:wrap}",
+    ".pv-chip{border:1px solid var(--border);background:var(--card);color:var(--text);padding:8px 12px;border-radius:999px;font-size:14px;font-family:inherit;cursor:pointer}",
+    ".pv-chip.on{background:var(--grad);color:#fff;border:0}",
+    ".pv-frame{width:100%;height:420px;border:1px solid var(--border);border-radius:10px;background:#fff}",
+    ".pv-sheet{display:flex;flex-direction:column;gap:6px}",
+    ".pv-big{width:100%;min-height:120px;font-size:20px;line-height:1.6}"
+  ].join("\n");
+  document.head.appendChild(st);
+
+  window.ToxicLib = {
+    FONT: FONT, todayISO: todayISO, dmy: dmy, num: num, inr: inr, inrWords: inrWords, canvas: canvas, toBlob: toBlob, fileToCanvas: fileToCanvas,
+    drawCover: drawCover, drawContain: drawContain, rrect: rrect, hexA: hexA, wrapText: wrapText,
+    qrEncode: qrEncode, qrDraw: qrDraw, Doc: Doc, pdfFrom: pdfFrom, exportBar: exportBar, imageBar: imageBar,
+    form: form, persist: persist, saveImg: saveImg, loadImgSaved: loadImgSaved, debounce: debounce, ai: ai
+  };
+})();
