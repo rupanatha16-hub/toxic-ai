@@ -534,8 +534,6 @@ async function init() {
   if (!sel.value) sel.value = "general";
   sel.onchange = () => store.set("toxic.mode", sel.value);
 
-  renderTools($("#quickTools"), TOOLS.filter((t) => QUICK.includes(t.id)));
-  renderTools($("#toolsGrid"), TOOLS);
 
   document.querySelectorAll(".nav-btn").forEach((b) => { b.onclick = () => show(b.dataset.go); });
   $("#newChatBtn").onclick = () => newChat(sel.value, null);
