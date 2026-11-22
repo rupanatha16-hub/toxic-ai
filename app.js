@@ -522,6 +522,38 @@ function setupMic(sendBtn, input) {
 }
 
 /* ---------- Init ---------- */
+/* ---------- Peeche (Back): chat ka <- button + phone ka Back ---------- */
+let lastBackAt = 0;
+function appBack() {
+  const sheet = document.getElementById("sheet");
+  if (sheet && sheet.classList.contains("open")) { const x = document.getElementById("sheetClose"); if (x) x.click(); return true; }
+  if ($("#drawer").classList.contains("open")) { closeDrawer(); return true; }
+  if (window.ToxicStudio && typeof window.ToxicStudio.back === "function" && window.ToxicStudio.back()) return true;
+  const act = document.querySelector(".screen.active");
+  const name = act ? act.id.replace("screen-", "") : "home";
+  if (name !== "home") { show("home"); return true; }
+  return false;
+}
+function setupBack() {
+  const bar = document.querySelector("#screen-chat .topbar");
+  if (bar && !$("#chatBack")) {
+    const b = el("button", "icon-btn");
+    b.id = "chatBack"; b.type = "button"; b.setAttribute("aria-label", "Peeche");
+    b.style.marginLeft = "auto";
+    b.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>';
+    b.onclick = () => show("home");
+    bar.append(b);
+  }
+  try { history.pushState({ toxic: 1 }, ""); } catch (e) {}
+  window.addEventListener("popstate", () => {
+    if (appBack()) { try { history.pushState({ toxic: 1 }, ""); } catch (e) {} return; }
+    if (Date.now() - lastBackAt < 2000) { history.back(); return; }
+    lastBackAt = Date.now();
+    toast("Band karne ke liye dobara Back dabao");
+    try { history.pushState({ toxic: 1 }, ""); } catch (e) {}
+  });
+}
+
 async function init() {
   applyTheme(store.get("toxic.theme", "dark"));
   document.querySelectorAll("[data-icon]").forEach((x) => setIcon(x, x.dataset.icon, Number(x.dataset.size) || 22));
@@ -538,6 +570,7 @@ async function init() {
 
   document.querySelectorAll(".nav-btn").forEach((b) => { b.onclick = () => show(b.dataset.go); });
   $("#newChatBtn").onclick = () => newChat(sel.value, null);
+  try { setupBack(); } catch (e) { console.error(e); }
   $("#themeToggle").onclick = toggleTheme;
   $("#themeToggle").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } };
   $("#sendBtn").onclick = send;
