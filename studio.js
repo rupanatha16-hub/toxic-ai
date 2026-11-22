@@ -1000,6 +1000,7 @@
   window.ToxicStudio = {
     register: function (t) { if (t && t.id && typeof t.run === "function") PREM[t.id] = t; },
     has: function (id) { return !!PREM[id]; },
+    back: function () { if (screen && backBtn && screen.classList.contains("active") && !backBtn.hidden) { backBtn.onclick(); return true; } return false; },
     open: function (id, from) { var t = PREM[id]; if (!t) return false; retTo = from || null; open(t); return true; },
     h: h, q: q, btn: btn, field: field, row: row, inp: inp, say: say, copyText: copyText, saveBlob: saveBlob, shareFile: shareFile,
     fmtSize: fmtSize, pickImage: pickImage, loadImg: loadImg, buildPdf: buildPdf, store: store, loadScript: loadScript,
